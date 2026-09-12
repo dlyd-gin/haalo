@@ -1,0 +1,13 @@
+<button
+  type="button"
+  class="orientation-toggle"
+  [attr.aria-pressed]="layout.orientation() === 'vertical'"
+  aria-label="Toggle layout orientation"
+  (click)="layout.toggleOrientation()"
+>
+  @if (layout.orientation() === 'horizontal') {
+    <svg-icon name="orientation-stack" size="sm" [filled]="true" />
+  } @else {
+    <svg-icon name="orientation-side" size="sm" [filled]="true" />
+  }
+</button>

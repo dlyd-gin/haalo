@@ -1,0 +1,19 @@
+@use '../../styles/glass';
+
+.orientation-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-vibrant);
+  cursor: pointer;
+  @include glass.glass-press;
+
+  &:hover {
+    @include glass.glass-panel('sm', var(--radius-pill));
+  }
+}

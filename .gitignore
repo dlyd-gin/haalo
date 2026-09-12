@@ -1,0 +1,66 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# Python TTS service
+/services/tts-service/.venv
+/services/tts-service/models/*
+!/services/tts-service/models/.gitkeep
+/services/tts-service/**/__pycache__
+/services/tts-service/.env
+
+# Python STT service
+/services/stt-service/.venv
+/services/stt-service/models/*
+!/services/stt-service/models/.gitkeep
+/services/stt-service/**/__pycache__
+/services/stt-service/.env
+
+# Python translator service
+/services/translator-service/.venv
+/services/translator-service/models/*
+!/services/translator-service/models/.gitkeep
+/services/translator-service/**/__pycache__
+/services/translator-service/.env
+
+# System files
+.DS_Store
+Thumbs.db
+.angular/cache/21.2.20/haalo-app/vite/deps/@angular_platform-browser.js.map

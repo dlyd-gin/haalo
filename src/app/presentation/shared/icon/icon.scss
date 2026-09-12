@@ -1,0 +1,58 @@
+:host {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.icon {
+  display: block;
+  color: inherit;
+  stroke-width: 1.75;
+
+  &--sm {
+    width: 16px;
+    height: 16px;
+  }
+
+  &--md {
+    width: 20px;
+    height: 20px;
+  }
+
+  &--lg {
+    width: 28px;
+    height: 28px;
+    stroke-width: 2;
+  }
+}
+
+.icon__wave-bar {
+  transform-origin: center;
+  animation: icon-sound-wave 1s var(--easing-standard) infinite;
+
+  &:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+}
+
+@keyframes icon-sound-wave {
+  0%, 100% {
+    transform: scaleY(0.5);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.icon__wave-bar--paused {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon__wave-bar {
+    animation: none;
+  }
+}

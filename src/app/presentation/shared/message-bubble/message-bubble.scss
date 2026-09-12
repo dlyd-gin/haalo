@@ -1,0 +1,127 @@
+// Removes the host's own box from the render tree (without removing its
+// children from the DOM) so .bubble becomes an effective direct flex-item
+// child of .foreign-speaker__feed/.native-speaker__feed — otherwise align-self on
+// .bubble--start/.bubble--end has no effect, since align-self only applies
+// when the element's immediate parent is the flex container itself.
+:host {
+  display: contents;
+}
+
+.bubble {
+  max-width: 80%;
+
+  &--start {
+    align-self: flex-start;
+  }
+
+  &--end {
+    align-self: flex-end;
+  }
+}
+
+// Solid elevated fill, not glass — bubbles are scrolling, unpredictable content,
+// and HIG reserves translucent materials for the floating chrome layer (header,
+// menus, floating controls), recommending solid fills for content like this.
+.bubble__content {
+  // Establishes a block formatting context so the container's height
+  // properly wraps the floated .bubble__play instead of collapsing around it.
+  display: flow-root;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-md);
+  box-shadow: var(--glass-shadow-sm);
+}
+
+.bubble__status {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.bubble__status--error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-error);
+  font-style: normal;
+}
+
+.bubble__progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.bubble__progress-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  animation: bubble-progress-bounce 1.2s ease-in-out infinite;
+
+  &:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+}
+
+@keyframes bubble-progress-bounce {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.bubble__primary {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.bubble__secondary {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.bubble__play {
+  float: right;
+  // Keeps the icon clear of the wrapped text around it — tune these first if
+  // the button still reads as overlapping the first line.
+  margin: 0 0 var(--space-xs) var(--space-xs);
+  padding: var(--space-xs);
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    opacity var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+
+  &:active:not(:disabled) {
+    opacity: 0.7;
+  }
+
+  // Waiting for the TTS service on initial load — not yet playable.
+  &:disabled {
+    color: var(--color-error);
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}

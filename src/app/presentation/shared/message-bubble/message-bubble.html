@@ -1,0 +1,76 @@
+<article
+  class="bubble"
+  [class.bubble--start]="align() === 'start'"
+  [class.bubble--end]="align() === 'end'"
+  [class.bubble--error]="turn().status === 'error'"
+>
+  <div class="bubble__content">
+    @if (showPlayButton() && turn().status !== 'error') {
+      <button
+        type="button"
+        class="bubble__play"
+        [disabled]="turn().status !== 'ready'"
+        (click)="onPlayClick()"
+        [attr.aria-label]="
+          turn().status !== 'ready' ? 'Waiting for audio' : isPlaying() ? 'Pause audio' : 'Play audio'
+        "
+      >
+        <svg-icon [name]="isPlaying() ? 'sound-wave-progress' : 'sound-wave-play'" size="sm" />
+      </button>
+    }
+    @switch (turn().status) {
+      @case ('recording') {
+        <p class="bubble__status">Listening…</p>
+      }
+      @case ('processing') {
+        @if (align() === 'end' && turn().sourceText) {
+          <p class="bubble__primary">{{ turn().sourceText }}</p>
+        } @else if (turn().sourceText) {
+          <div class="bubble__progress" role="status" aria-label="Translating">
+            <span class="bubble__progress-dot"></span>
+            <span class="bubble__progress-dot"></span>
+            <span class="bubble__progress-dot"></span>
+          </div>
+          <p class="bubble__secondary">{{ turn().sourceText }}</p>
+        } @else {
+          <div class="bubble__progress" role="status" aria-label="Translating">
+            <span class="bubble__progress-dot"></span>
+            <span class="bubble__progress-dot"></span>
+            <span class="bubble__progress-dot"></span>
+          </div>
+        }
+      }
+      @case ('streaming') {
+        @if (align() === 'end') {
+          <p class="bubble__primary">{{ primaryText() }}</p>
+        } @else if (!primaryText()) {
+          <div class="bubble__progress" role="status" aria-label="Translating">
+            <span class="bubble__progress-dot"></span>
+            <span class="bubble__progress-dot"></span>
+            <span class="bubble__progress-dot"></span>
+          </div>
+          @if (secondaryText()) {
+            <p class="bubble__secondary">{{ secondaryText() }}</p>
+          }
+        } @else {
+          <p class="bubble__primary">{{ primaryText() }}</p>
+          @if (secondaryText()) {
+            <p class="bubble__secondary">{{ secondaryText() }}</p>
+          }
+        }
+      }
+      @case ('error') {
+        <p class="bubble__status bubble__status--error">
+          <svg-icon name="error" size="sm" aria-hidden="true" />
+          {{ turn().errorMessage || 'Something went wrong' }}
+        </p>
+      }
+      @default {
+        <p class="bubble__primary">{{ primaryText() }}</p>
+        @if (secondaryText()) {
+          <p class="bubble__secondary">{{ secondaryText() }}</p>
+        }
+      }
+    }
+  </div>
+</article>

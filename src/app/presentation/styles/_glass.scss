@@ -1,0 +1,112 @@
+// Liquid-glass shared primitives. Every mixin reads CSS custom properties from
+// _tokens.scss only — never hardcodes rgba/blur — so a single @include renders
+// correctly in both the dark shell/native-speaker scope and the light foreign-speaker scope.
+
+// Never transition/animate backdrop-filter or filter here — HIG explicitly warns
+// against animating blur radius, and it's also expensive to repaint every frame.
+@mixin glass-panel($level: 'md', $radius: var(--radius-md), $tint: var(--glass-surface)) {
+  position: relative;
+  isolation: isolate;
+  border-radius: $radius;
+  background: $tint;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur-#{$level})) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-#{$level})) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow-#{$level});
+
+  // Specular top-edge highlight. Pseudo-elements paint before real DOM children,
+  // so this sits behind text/icons automatically — no z-index needed. background
+  // (and backdrop-filter, above) are clipped to border-radius by the UA without
+  // needing overflow:hidden, which would otherwise clip this element's own
+  // box-shadow too.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, var(--glass-highlight) 0%, transparent 45%);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background: var(--color-surface-raised);
+  }
+}
+
+// Lightweight variant for solid accent CTAs (send/play buttons) that should stay
+// fully opaque (translucency would wash out the accent fill) but still get the
+// specular sheen + rounded highlight of the rest of the system.
+@mixin glass-specular($radius: var(--radius-pill)) {
+  position: relative;
+  isolation: isolate;
+  border-radius: $radius;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 55%);
+    pointer-events: none;
+  }
+}
+
+// Recessed input surface — inset shadow instead of elevation shadow.
+@mixin glass-inset($radius: var(--radius-md)) {
+  position: relative;
+  border-radius: $radius;
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-inset-shadow);
+  transition:
+    box-shadow var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    background: var(--color-surface-raised);
+  }
+}
+
+@mixin glass-focus-ring {
+  &:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: var(--glass-inset-shadow), var(--glass-focus-ring);
+  }
+}
+
+@mixin glass-press($scale: 0.96) {
+  transition:
+    transform var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard),
+    background-color var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard),
+    opacity var(--duration-fast) var(--easing-standard);
+
+  &:active:not(:disabled) {
+    transform: scale(#{$scale});
+    opacity: 0.85;
+  }
+
+  // Reduced motion: drop the scale transform, keep opacity as the tactile signal.
+  @media (prefers-reduced-motion: reduce) {
+    transition-property: box-shadow, background-color, border-color, opacity;
+
+    &:active:not(:disabled) {
+      transform: none;
+      opacity: 0.85;
+    }
+  }
+}
+
+// Ambient neutral blob wash behind a panel/shell host — depth only, never brand
+// color. Pure radial-gradient (no filter: blur()) — the soft edges come from the
+// gradient's transparent falloff, so this is cheap to paint/repaint even during
+// scroll/resize, unlike a separately blurred layer.
+@mixin panel-ambient {
+  background-image: var(--panel-ambient);
+  background-color: var(--color-bg);
+}

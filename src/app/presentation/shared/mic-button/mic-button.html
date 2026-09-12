@@ -1,0 +1,19 @@
+<button
+  type="button"
+  class="mic-button"
+  [class.mic-button--recording]="isRecording()"
+  [class.mic-button--processing]="isProcessing()"
+  [class.mic-button--sm]="size() === 'sm'"
+  [disabled]="isProcessing()"
+  [attr.aria-pressed]="isRecording()"
+  [attr.aria-label]="isRecording() ? 'Release to stop recording' : 'Hold to record'"
+  (pointerdown)="onPointerDown($event)"
+  (pointerup)="onPointerUp()"
+  (pointercancel)="onPointerCancel()"
+  (keydown)="onKeyDown($event)"
+  (keyup)="onKeyUp($event)"
+>
+  <span class="mic-button__icon">
+    <svg-icon name="mic" [size]="iconSize()" [filled]="isRecording()" />
+  </span>
+</button>

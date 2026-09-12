@@ -1,0 +1,140 @@
+:root {
+  // Dark scope — shell, header, native-speaker panel (native-speaker)
+  // 4-tier elevation: base recedes, each step up is genuinely lighter (not a
+  // near-identical shade) so depth reads even in a flat screenshot.
+  --color-bg: #101114; // base
+  --color-surface: #1c1e23; // elevation 1 — message bubbles (solid)
+  --color-surface-raised: #262930; // elevation 2 — hover/active/nested
+  --color-surface-overlay: #33373f; // elevation 3 — base tint for glass chrome, before alpha
+  --color-border: #2c2f36;
+  --color-text: #edeef0;
+  --color-text-muted: #9ca1ab;
+
+  // Vibrancy — brighter than --color-text/-muted, for content sitting on a
+  // translucent glass surface (never used on solid fills).
+  --color-text-vibrant: #ffffff;
+  --color-text-vibrant-muted: #c9ccd1;
+
+  // Shared accent — defined once here, inherited unchanged into the light scope below.
+  // Warm amber/gold ("halo" glow) — reserved for points of action/attention
+  // (mic ring, recording glow, focus states, CTAs), never for ambient backgrounds.
+  --color-accent: #e8a33d;
+  --color-accent-contrast: #1a1206;
+  --color-accent-muted: rgba(232, 163, 61, 0.16);
+  --color-recording-glow: 0 0 0 8px var(--color-accent-muted);
+  --color-error: #e14c4c;
+
+  // Accent used as a border/outline/stroke rather than a solid fill-with-contrast-text.
+  // UI-component contrast only (3:1, WCAG 1.4.11) — do not reuse for text, which needs 4.5:1.
+  // The light scope below overrides this to a darkened same-hue value that passes 3:1.
+  --color-accent-ring: var(--color-accent);
+
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  // Type scale — shared across scopes. Nothing below should hardcode a font-size.
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.375rem;
+  --font-size-2xl: 1.75rem;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.45;
+  --line-height-relaxed: 1.6;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  // Motion — every transition/animation in the app should reach for one of these
+  // instead of hardcoding its own duration/easing.
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --easing-emphasized: cubic-bezier(0.3, 0, 0, 1);
+
+  // Liquid glass — shared blur/saturate + dark-scope translucent surfaces
+  --glass-blur-sm: 16px;
+  --glass-blur-md: 20px;
+  --glass-blur-lg: 24px;
+  --glass-saturate: 180%;
+
+  // Tinted from --color-surface-overlay, so glass visibly sits at a different
+  // lightness than solid content surfaces even before backdrop-filter kicks in.
+  --glass-surface: rgba(63, 69, 80, 0.55);
+  --glass-surface-strong: rgba(63, 69, 80, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.16);
+
+  --glass-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --glass-shadow-md: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --glass-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --glass-inset-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --glass-focus-ring: 0 0 0 3px var(--color-accent-muted), 0 0 0 1px var(--color-accent);
+
+  // Ambient blobs — neutral/grayscale only. These exist purely to give glass
+  // panels something to refract; the brand accent never washes a whole panel,
+  // it only ever appears at a specific point of action (mic ring, focus ring).
+  --glass-blob-1: radial-gradient(ellipse 75% 65% at 15% 10%, rgba(255, 255, 255, 0.05), transparent 72%);
+  --glass-blob-2: radial-gradient(ellipse 70% 60% at 85% 85%, rgba(255, 255, 255, 0.035), transparent 72%);
+  --glass-blob-3: radial-gradient(ellipse 80% 70% at 50% 100%, rgba(255, 255, 255, 0.025), transparent 72%);
+  --panel-ambient: var(--glass-blob-1), var(--glass-blob-2), var(--glass-blob-3);
+}
+
+// Light scope override — foreign-speaker panel exception only.
+// --color-accent* is intentionally NOT redefined here, so it stays the same
+// value as :root and visually ties the light and dark halves together.
+foreign-speaker,
+[data-panel='foreign'] {
+  --color-bg: #faf9f6;
+  --color-surface: #ffffff;
+  --color-surface-raised: #f1efea;
+  --color-surface-overlay: #e7e4dd;
+  --color-border: #e2dfd8;
+  --color-text: #17181b;
+  --color-text-muted: #5f6169;
+
+  --color-text-vibrant: #0a0a0c;
+  --color-text-vibrant-muted: #3c3e44;
+
+  // Darkened from the dark-scope error red — #e14c4c only hit 3.74:1 on this
+  // background (fails 4.5:1 AA for the body text it's used on in message-bubble).
+  --color-error: #b23a3a;
+
+  // UI-component contrast only (3:1) — see :root comment. Not for text.
+  --color-accent-ring: #a06a1a;
+
+  --glass-surface: rgba(231, 228, 221, 0.55);
+  --glass-surface-strong: rgba(231, 228, 221, 0.72);
+  --glass-border: rgba(23, 24, 27, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.85);
+
+  --glass-shadow-sm: 0 2px 8px rgba(23, 24, 27, 0.08);
+  --glass-shadow-md: 0 6px 20px rgba(23, 24, 27, 0.1);
+  --glass-shadow-lg: 0 12px 32px rgba(23, 24, 27, 0.14);
+  --glass-inset-shadow:
+    inset 0 2px 6px rgba(23, 24, 27, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+
+  --glass-blob-1: radial-gradient(ellipse 75% 65% at 15% 10%, rgba(23, 24, 27, 0.035), transparent 72%);
+  --glass-blob-2: radial-gradient(ellipse 70% 60% at 85% 85%, rgba(23, 24, 27, 0.025), transparent 72%);
+  --glass-blob-3: radial-gradient(ellipse 80% 70% at 50% 100%, rgba(23, 24, 27, 0.05), transparent 72%);
+}

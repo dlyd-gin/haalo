@@ -1,0 +1,50 @@
+<header class="app-header">
+  <div class="app-header__brand">
+    <svg class="app-header__logo" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="9" cy="13" r="6.5" fill="var(--color-accent)" />
+      <circle cx="15" cy="10" r="6.5" fill="#faf9f6" />
+    </svg>
+    <h1 class="app-header__title">Haalo...</h1>
+  </div>
+  <div class="app-header__actions">
+    <language-picker />
+
+    <div class="app-header__inline-actions">
+      <orientation-toggle />
+      <button
+        type="button"
+        class="app-header__reset"
+        (click)="store.reset()"
+        aria-label="Reset conversation"
+      >
+        <svg-icon name="reset" size="sm" />
+      </button>
+    </div>
+
+    <div class="app-header__menu">
+      <button
+        type="button"
+        class="app-header__menu-trigger"
+        aria-label="More actions"
+        aria-haspopup="true"
+        [attr.aria-expanded]="menuOpen()"
+        (click)="toggleMenu()"
+      >
+        <svg-icon name="menu" size="md" />
+      </button>
+      @if (menuOpen()) {
+        <div class="app-header__menu-panel">
+          <orientation-toggle (click)="closeMenu()" />
+          <button
+            type="button"
+            class="app-header__reset"
+            (click)="store.reset(); closeMenu()"
+            aria-label="Reset conversation"
+          >
+            <svg-icon name="reset" size="sm" />
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</header>

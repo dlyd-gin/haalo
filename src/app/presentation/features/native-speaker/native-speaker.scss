@@ -1,0 +1,159 @@
+@use '../../styles/glass';
+
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  @include glass.panel-ambient;
+  color: var(--color-text);
+}
+
+.panel-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-height: 100%;
+  padding: var(--space-md);
+}
+
+.native-speaker__feed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+// Sticky, not absolute/fixed: :host is the scroll container (overflow-y: auto).
+// position: sticky keeps this pinned to the *visible* bottom edge of the
+// scrollport as the feed grows, instead of drifting to the bottom of the total
+// scrollable content the way position: absolute would.
+.native-speaker__composer-wrap {
+  position: sticky;
+  bottom: var(--space-md);
+  align-self: center;
+  z-index: 2; // above feed content, under app-header's z-index: 20
+  margin-top: auto; // stays glued to the bottom when the feed is short
+}
+
+.native-speaker__composer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  overflow: hidden; // required so the inner content never spills mid-transition
+  width: 44px; // matches mic-button's collapsed size on the foreign speaker side
+  max-height: 44px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  @include glass.glass-inset(var(--radius-pill));
+  transition:
+    width var(--duration-base) var(--easing-emphasized),
+    max-height var(--duration-base) var(--easing-emphasized),
+    border-radius var(--duration-base) var(--easing-standard),
+    padding var(--duration-base) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+
+  &--expanded {
+    width: min(24rem, calc(100vw - 2 * var(--space-md)));
+    max-height: 9rem;
+    padding: var(--space-xs);
+    border-radius: var(--radius-md);
+  }
+
+  // glass-focus-ring's mixin targets &:focus, but the focusable element here is
+  // a child (textarea/button), not this container — so the ring is re-declared
+  // against :focus-within instead of pulling in the mixin.
+  &:focus-within {
+    border-color: var(--color-accent);
+    box-shadow: var(--glass-inset-shadow), var(--glass-focus-ring);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-property: border-radius, padding, box-shadow, border-color;
+  }
+}
+
+@keyframes native-speaker-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.native-speaker__fab {
+  flex: none;
+  width: 44px; // matches mic-button's size on the foreign speaker side
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-vibrant);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: native-speaker-fade-in 0.15s ease both;
+  @include glass.glass-press(0.94);
+}
+
+.native-speaker__input {
+  flex: 1;
+  min-height: 3rem;
+  max-height: 8rem;
+  padding: var(--space-sm);
+  border: none;
+  background: transparent;
+  color: var(--color-text-vibrant);
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  resize: none;
+  animation: native-speaker-fade-in 0.18s ease 0.05s both;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.native-speaker__send {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  // Matches the textarea's own left padding, so the send icon sits as far
+  // from the composer's right edge as the input text sits from its left.
+  margin-right: var(--space-sm);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  animation: native-speaker-fade-in 0.18s ease 0.05s both;
+  @include glass.glass-press;
+
+  &:hover:not(:disabled) {
+    @include glass.glass-panel('sm', var(--radius-pill));
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .native-speaker__fab,
+  .native-speaker__input,
+  .native-speaker__send {
+    animation: none;
+  }
+}

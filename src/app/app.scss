@@ -1,0 +1,104 @@
+@use './presentation/styles/glass';
+
+:host {
+  display: block;
+  height: 100dvh;
+}
+
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  // gap (not each child's own margin) spaces the header and grid apart — flexbox
+  // doesn't collapse margins between siblings, and header/grid swap visual order
+  // via `order` below, so per-child margins would double up at whichever edge
+  // becomes their shared boundary. gap + shell padding stays correct either way.
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  @include glass.panel-ambient;
+}
+
+.conversation-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  // Hairline seam width, not a spacing-scale value — the gap is filled by
+  // --color-border to render as a 2px divider between panels, not whitespace.
+  gap: 2px;
+  background: var(--color-border);
+  overflow: hidden;
+
+  // Default/auto layout — plain CSS, correct on first paint with zero JS. Matches
+  // horizontal orientation, so its top edge (flush against the header's now-square
+  // bottom edge) is square too; bottom corners stay rounded.
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+@media (max-width: 700px) {
+  .conversation-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    // Below this breakpoint, default/auto layout flips to vertical (grid moves above
+    // the header, native-speaker's row at the bottom) — flip which edge is square to match.
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  // Header moves to the bottom edge, next to native-speaker (the native speaker's panel,
+  // also at the bottom in this stacked arrangement) — its controls belong there.
+  .app-shell {
+    app-header {
+      order: 1;
+    }
+
+    .conversation-grid {
+      order: 0;
+    }
+  }
+}
+
+// Manual override (set by the header's orientation toggle, always post-hydration).
+// Higher selector specificity than the rules above, so it wins at any viewport width.
+.app-shell[data-orientation='horizontal'] {
+  app-header {
+    order: 0;
+  }
+
+  .conversation-grid {
+    order: 1;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    // Both top corners sit flush against the header's now-square bottom edge — square
+    // them off too. Both bottom corners stay rounded (bottom-right set explicitly here,
+    // though it matches the base rule below already).
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: var(--radius-lg);
+  }
+}
+
+.app-shell[data-orientation='vertical'] {
+  app-header {
+    order: 1;
+  }
+
+  .conversation-grid {
+    order: 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    // native-speaker is always the bottom row here (see foreign-speaker.scss) — both its corners
+    // sit flush against the header's now-square top edge, so square them off too.
+    // foreign-speaker's row (top) isn't adjacent to anything, so its corners stay rounded.
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}

@@ -1,0 +1,55 @@
+<div class="panel-content">
+  <div class="native-speaker__feed" role="log">
+    @for (turn of store.turns(); track turn.id) {
+      <message-bubble
+        [turn]="turn"
+        [align]="turn.originSplit === 'native-speaker' ? 'end' : 'start'"
+      />
+    }
+  </div>
+
+  <div class="native-speaker__composer-wrap" #composerRoot>
+    <div class="native-speaker__composer" [class.native-speaker__composer--expanded]="isExpanded()">
+      @if (!isExpanded()) {
+        <button
+          type="button"
+          class="native-speaker__fab"
+          aria-label="Reply"
+          aria-haspopup="true"
+          aria-expanded="false"
+          (click)="expand()"
+          #fabButton
+        >
+          <svg-icon name="compose" size="md" [filled]="true" />
+        </button>
+      } @else {
+        <textarea
+          class="native-speaker__input"
+          placeholder="Type your reply…"
+          [value]="draftText()"
+          (input)="onInput($any($event.target).value)"
+          (keydown)="onKeydown($event)"
+          #textareaEl
+        ></textarea>
+        <mic-button
+          [size]="'sm'"
+          [iconSize]="'sm'"
+          [isRecording]="store.isNativeRecording()"
+          [isProcessing]="isNativeProcessing() || store.isRecording()"
+          (pressStart)="onMicPressStart()"
+          (pressEnd)="onMicPressEnd()"
+          (pressCancel)="onMicPressCancel()"
+        />
+        <button
+          type="button"
+          class="native-speaker__send"
+          [disabled]="!canSend()"
+          (click)="onSend()"
+          aria-label="Send message"
+        >
+          <svg-icon name="send" size="sm" [filled]="true" />
+        </button>
+      }
+    </div>
+  </div>
+</div>

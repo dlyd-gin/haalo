@@ -1,0 +1,36 @@
+@use '../../styles/glass';
+
+.mic-button {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--color-text-vibrant);
+  cursor: pointer;
+  @include glass.glass-panel('md', var(--radius-pill));
+  @include glass.glass-press(0.94);
+  border-width: 2px;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--recording {
+    border-color: var(--color-accent-ring);
+    box-shadow: var(--glass-shadow-md), var(--color-recording-glow);
+  }
+
+  &--sm {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.mic-button__icon {
+  display: flex;
+}

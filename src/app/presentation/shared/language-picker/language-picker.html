@@ -1,0 +1,31 @@
+<div class="language-picker" [class.language-picker--expanded]="isExpanded()" #pickerRoot>
+  @if (!isExpanded()) {
+    <button
+      #triggerButton
+      type="button"
+      class="language-picker__trigger"
+      aria-haspopup="listbox"
+      aria-expanded="false"
+      [attr.aria-label]="'Foreign speaker language: ' + store.foreignLanguage().label + '. Tap to change.'"
+      (click)="expand()"
+    >
+      <span class="language-picker__flag" aria-hidden="true">{{ store.foreignLanguage().flag }}</span>
+    </button>
+  } @else {
+    <div class="language-picker__row" role="listbox" aria-label="Foreign speaker language">
+      @for (language of orderedLanguages(); track language.code) {
+        <button
+          #optionButton
+          type="button"
+          role="option"
+          class="language-picker__option"
+          [attr.aria-selected]="language.code === store.foreignLanguage().code"
+          [attr.aria-label]="language.label"
+          (click)="select(language)"
+        >
+          <span class="language-picker__flag" aria-hidden="true">{{ language.flag }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>

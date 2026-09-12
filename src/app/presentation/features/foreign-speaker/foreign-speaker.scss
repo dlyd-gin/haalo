@@ -1,0 +1,161 @@
+@use '../../styles/glass';
+
+:host {
+  position: relative;
+  display: block;
+  height: 100%;
+  min-height: 0;
+  @include glass.panel-ambient;
+  color: var(--color-text);
+}
+
+// Ambient panel identity, but still part of what the foreign speaker needs to read
+// right-side-up — so it rotates together with .panel-content below, not independently.
+// A vector SVG (not the emoji glyph) so it stays crisp at this large a size — color
+// emoji are raster images internally and blur badly once scaled past their native
+// resolution, which is exactly what a font-size-based approach was hitting before.
+//
+// Positioned directly under :host, outside .foreign-speaker__scroll (not inside it): an
+// absolutely positioned element whose containing block IS the scroll container still scrolls
+// along with the rest of that container's content — position: absolute only fixes an
+// element's offset within the scrollable coordinate space, it doesn't exempt it from being
+// scrolled as part of that space. Keeping it a sibling of the scroll wrapper, anchored to the
+// non-scrolling :host instead, is what actually keeps it stationary while the feed scrolls.
+.foreign-speaker__flag-backdrop {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 85%;
+  height: 85%;
+  object-fit: contain;
+  opacity: 0.15;
+  pointer-events: none;
+  user-select: none;
+  z-index: 0;
+}
+
+.foreign-speaker__scroll {
+  position: relative;
+  z-index: 1; // above the flag backdrop
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden auto;
+}
+
+// Face-to-face readability: in the stacked/vertical orientation, foreign-speaker is always
+// the top panel, so its content (the flag backdrop and feed) is rotated 180deg here so the
+// person sitting across the table can read it right-side up without physically turning the
+// device. Neither :host nor .foreign-speaker__scroll (its scroll container) is ever rotated.
+//
+// .foreign-speaker__controls is rotated as its own element rather than by nesting it inside
+// the already-rotated .panel-content: a transformed ancestor breaks position: sticky in most
+// browsers (the transform creates a containing block that intercepts sticky's positioning
+// against the real scroll container), which is why the mic button only stayed put in the
+// unrotated left/right layout, not the stacked/rotated top/bottom one.
+//
+// It sticks to opposite edges depending on orientation: top in the stacked/vertical layout
+// (closest to the browser chrome, away from native-speaker's own composer at the shared
+// panel boundary), bottom in the left/right layout (matching native-speaker's own composer
+// convention). A sticky element must be the FIRST flex child to correctly stick to top from
+// the very start of scroll, and the LAST to correctly stick to bottom — so rather than two
+// different DOM orderings, it's kept first in the template (satisfying the vertical/top case)
+// and re-ordered to last using the flex `order` property for the horizontal/bottom case, which
+// sticky positioning respects the same as normal flow position.
+//
+// Rotation is driven two ways, mirroring how app.scss drives the grid:
+// 1. A plain @media breakpoint for the default/auto case — pure CSS, correct on first
+//    paint with zero JS, so there's no rotation flash while SSR content hydrates.
+// 2. The [data-orientation] attribute (set by LayoutPreferencesStore only once the user
+//    explicitly clicks the orientation toggle, always post-hydration) overrides the
+//    media query in both directions — its higher selector specificity wins regardless
+//    of viewport width, so a manual choice always takes precedence over the breakpoint.
+@media (max-width: 700px) {
+  .panel-content,
+  .foreign-speaker__flag-backdrop {
+    transform: rotate(180deg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .foreign-speaker__controls {
+    top: var(--space-md);
+    bottom: auto;
+    order: 0;
+    transform: rotate(180deg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+:host-context([data-orientation='vertical']) {
+  .panel-content,
+  .foreign-speaker__flag-backdrop {
+    transform: rotate(180deg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .foreign-speaker__controls {
+    top: var(--space-md);
+    bottom: auto;
+    order: 0;
+    transform: rotate(180deg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+:host-context([data-orientation='horizontal']) {
+  .panel-content,
+  .foreign-speaker__flag-backdrop {
+    transform: none;
+  }
+
+  .foreign-speaker__controls {
+    top: auto;
+    bottom: var(--space-md);
+    order: 1;
+    transform: none;
+  }
+}
+
+.panel-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  // grow to fill leftover space in :host, but never shrink below the feed's
+  // own content size (flex-shrink: 0) — matches the original min-height: 100%
+  // block-layout behavior, just expressed in flex terms now that
+  // .foreign-speaker__controls is a sibling instead of a flex child here.
+  flex: 1 0 auto;
+  padding: var(--space-md);
+}
+
+.foreign-speaker__feed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+// Sticky, not absolute/fixed: .foreign-speaker__scroll is the scroll container
+// (overflow: hidden auto). Kept as a direct sibling of .panel-content (not
+// nested inside it) so no transformed ancestor sits between this element and
+// .foreign-speaker__scroll — see the rotation comment above for why that
+// matters. Defaults here match the
+// unrotated/left-right layout (bottom-anchored, last in visual order); the
+// rotation rules above override both for the stacked/vertical layout.
+.foreign-speaker__controls {
+  position: sticky;
+  top: auto;
+  bottom: var(--space-md);
+  order: 1;
+  display: flex;
+  justify-content: center;
+  flex: none;
+  padding: var(--space-sm) var(--space-md) 0;
+  z-index: 2; // above feed content, under app-header's z-index: 20
+}

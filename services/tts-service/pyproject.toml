@@ -1,0 +1,15 @@
+[project]
+name = "tts-service"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "mlx-audio",
+    "fastapi",
+    "uvicorn[standard]",
+    "soundfile",
+    "numpy",
+    "huggingface_hub[cli]",
+]
+
+[tool.uv]
+package = false

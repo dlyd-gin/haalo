@@ -1,0 +1,33 @@
+<img
+  class="foreign-speaker__flag-backdrop"
+  [src]="'flags/' + store.foreignLanguage().flagCountryCode + '.svg'"
+  alt=""
+  aria-hidden="true"
+/>
+
+<div class="foreign-speaker__scroll">
+  <div class="foreign-speaker__controls">
+    <mic-button
+      [isRecording]="store.isRecording()"
+      [isProcessing]="isProcessing() || store.isNativeRecording()"
+      (pressStart)="onPressStart()"
+      (pressEnd)="onPressEnd()"
+      (pressCancel)="onPressCancel()"
+    />
+  </div>
+
+  <div class="panel-content">
+    <div class="foreign-speaker__feed" role="log">
+      @for (turn of store.turns(); track turn.id) {
+        <message-bubble
+          [turn]="turn"
+          [align]="turn.originSplit === 'foreign-speaker' ? 'end' : 'start'"
+          [showPlayButton]="turn.originSplit === 'native-speaker'"
+          [isPlaying]="store.playingTurnId() === turn.id"
+          (play)="onPlay($event)"
+          (pause)="onPause($event)"
+        />
+      }
+    </div>
+  </div>
+</div>

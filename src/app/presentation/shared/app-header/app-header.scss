@@ -1,0 +1,174 @@
+@use '../../styles/glass';
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-lg);
+  color: var(--color-text-vibrant);
+  // glass-panel sets isolation:isolate, so this establishes its own stacking
+  // context — without an explicit z-index here, .conversation-grid (its later
+  // DOM sibling in .app-shell) paints on top of this entire context, including
+  // the overflow-menu popover nested inside it, however that popover's own
+  // z-index is set. This lifts the whole header (and anything it pops out)
+  // above the content grid regardless of DOM order or flex `order` swapping.
+  z-index: 20;
+  @include glass.glass-panel('lg', var(--radius-lg), var(--glass-surface-strong));
+
+  // Default/auto layout — plain CSS, correct on first paint with zero JS. Matches
+  // horizontal orientation (header at the top, see layout-preferences.ts), so its
+  // bottom edge is flush against the grid below — square those corners.
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+// Flat fills, no stroke — this renders at 20px, where the favicon's thin accent
+// ring would just disappear. Light circle is a literal hex (kept in sync with
+// the foreign-speaker/foreign-panel --color-bg value), not a token: this header always
+// lives in the dark color scope, so var(--color-bg) here would resolve to the
+// dark value, not the light tone the mark actually needs.
+.app-header__logo {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.app-header__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-vibrant);
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.app-header__inline-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.app-header__menu {
+  display: none;
+  position: relative;
+}
+
+@media (max-width: 740px) {
+  .app-header__inline-actions {
+    display: none;
+  }
+
+  .app-header__menu {
+    display: block;
+  }
+}
+
+.app-header__menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--color-text-vibrant);
+  cursor: pointer;
+  @include glass.glass-press;
+
+  &:hover {
+    @include glass.glass-panel('sm', var(--radius-pill));
+  }
+}
+
+.app-header__menu-panel {
+  position: absolute;
+  inset-inline-end: 0;
+  // Both children are compact icon-only circles now, so a row reads better than
+  // a tall list with a lot of empty space around short content.
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  color: var(--color-text-vibrant);
+  @include glass.glass-panel('lg', var(--radius-lg), var(--glass-surface-strong));
+  z-index: 10;
+
+  // Default: header at the top (horizontal orientation) — open downward.
+  top: calc(100% + var(--space-xs));
+}
+
+@media (max-width: 700px) {
+  // Header auto-moves to the bottom below this breakpoint (see app.scss) — open
+  // upward instead, or the panel renders below the viewport, forcing a page-scroll
+  // to reach it.
+  .app-header__menu-panel {
+    top: auto;
+    bottom: calc(100% + var(--space-xs));
+    position: absolute;
+  }
+
+  .app-header {
+    // Below this breakpoint, default/auto layout flips to vertical (header moves to
+    // the bottom) — flip which edge is square to match.
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+  }
+}
+
+:host-context([data-orientation='vertical']) .app-header__menu-panel {
+  top: auto;
+  bottom: calc(100% + var(--space-xs));
+}
+
+:host-context([data-orientation='horizontal']) .app-header__menu-panel {
+  top: calc(100% + var(--space-xs));
+  bottom: auto;
+}
+
+// Header sits flush against the conversation grid on whichever edge the flex
+// `order` swap (app.scss) puts them adjacent — that edge reads square, not
+// rounded, so only the two corners away from the grid keep --radius-lg.
+:host-context([data-orientation='vertical']) .app-header {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+}
+
+:host-context([data-orientation='horizontal']) .app-header {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.app-header__reset {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-vibrant);
+  cursor: pointer;
+  @include glass.glass-press;
+
+  &:hover {
+    @include glass.glass-panel('sm', var(--radius-pill));
+    color: var(--color-error);
+  }
+}

@@ -1,0 +1,15 @@
+[project]
+name = "stt-service"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "mlx-audio",
+    "mlx-whisper",
+    "fastapi",
+    "uvicorn[standard]",
+    "numpy",
+    "huggingface_hub[cli]",
+]
+
+[tool.uv]
+package = false

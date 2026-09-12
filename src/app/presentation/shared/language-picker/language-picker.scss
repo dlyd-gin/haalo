@@ -1,0 +1,118 @@
+@use '../../styles/glass';
+
+// In-flow width transition — not an absolutely positioned overlay — mirrors
+// .native-speaker__composer exactly, so expanding is guaranteed to actually occupy
+// space and render, never silently clipped by an ancestor or lost to a
+// stacking-context ordering issue.
+.language-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-pill);
+  transition:
+    width var(--duration-base) var(--easing-emphasized),
+    box-shadow var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+
+  &--expanded {
+    // Fits exactly as many flag buttons as there are languages, capped so a
+    // future larger catalog can't push this past the viewport — the row
+    // itself becomes horizontally scrollable once content exceeds the cap.
+    width: min(max-content, calc(100vw - 2 * var(--space-lg)));
+    @include glass.glass-panel('md', var(--radius-pill), var(--glass-surface-strong));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition-property: box-shadow, border-color;
+  }
+}
+
+.language-picker__trigger {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-vibrant);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  @include glass.glass-press;
+
+  // :focus-visible, not :focus — this button is refocused programmatically
+  // whenever the picker collapses (see the focus effect in language-picker.ts),
+  // and :focus would paint the ring after every tap-to-select, not just real
+  // keyboard navigation.
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: var(--glass-inset-shadow), var(--glass-focus-ring);
+  }
+
+}
+
+.language-picker__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-xs);
+  // Clears the container's own rounded pill ends so the first/last option
+  // isn't flush against .language-picker's semicircular cap.
+  padding: 0 var(--space-xs);
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  // Explicit, not left to default: per the CSS Overflow spec, leaving
+  // overflow-y at its initial `visible` while overflow-x is anything else
+  // causes the browser to compute overflow-y as `auto` too — producing an
+  // unwanted vertical scrollbar even though nothing overflows vertically.
+  overflow-y: hidden;
+  // Native scroll handles both mouse-wheel/trackpad drag and mobile touch
+  // swipe — no hand-rolled gesture code needed.
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.language-picker__option {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: start;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-vibrant);
+  font-size: var(--font-size-md);
+  cursor: pointer;
+  @include glass.glass-press;
+
+  // :focus-visible, not :focus — expanding auto-focuses the selected option
+  // (see language-picker.ts's focus effect), so :focus would paint a ring on
+  // it every time the picker opens, not just on real keyboard navigation.
+  &:focus-visible {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: var(--glass-inset-shadow), var(--glass-focus-ring);
+  }
+
+}
+
+.language-picker__flag {
+  display: inline-flex;
+  flex: none;
+}

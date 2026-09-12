@@ -1,0 +1,13 @@
+[project]
+name = "translator-service"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "mlx-lm",
+    "fastapi",
+    "uvicorn[standard]",
+    "huggingface_hub[cli]",
+]
+
+[tool.uv]
+package = false

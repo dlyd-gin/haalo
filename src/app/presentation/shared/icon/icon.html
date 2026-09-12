@@ -1,0 +1,105 @@
+<svg [class]="'icon icon--' + size()" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+  @switch (name()) {
+    @case ('mic') {
+      <rect
+        x="9"
+        y="2"
+        width="6"
+        height="11"
+        rx="3"
+        [attr.fill]="filled() ? 'currentColor' : 'none'"
+        [attr.stroke]="filled() ? 'none' : 'currentColor'"
+      />
+      <path d="M6 11v1a6 6 0 0 0 12 0v-1" stroke="currentColor" stroke-linecap="round" />
+      <line x1="12" y1="18" x2="12" y2="21" stroke="currentColor" stroke-linecap="round" />
+      <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-linecap="round" />
+    }
+    @case ('menu') {
+      <line x1="4" y1="6" x2="20" y2="6" stroke="currentColor" stroke-linecap="round" />
+      <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-linecap="round" />
+      <line x1="4" y1="18" x2="20" y2="18" stroke="currentColor" stroke-linecap="round" />
+    }
+    @case ('orientation-stack') {
+      <rect
+        x="4"
+        y="3"
+        width="16"
+        height="8"
+        rx="2"
+        [attr.fill]="filled() ? 'currentColor' : 'none'"
+        [attr.stroke]="filled() ? 'none' : 'currentColor'"
+      />
+      <rect
+        x="4"
+        y="13"
+        width="16"
+        height="8"
+        rx="2"
+        [attr.fill]="filled() ? 'currentColor' : 'none'"
+        [attr.stroke]="filled() ? 'none' : 'currentColor'"
+      />
+    }
+    @case ('orientation-side') {
+      <rect
+        x="3"
+        y="4"
+        width="8"
+        height="16"
+        rx="2"
+        [attr.fill]="filled() ? 'currentColor' : 'none'"
+        [attr.stroke]="filled() ? 'none' : 'currentColor'"
+      />
+      <rect
+        x="13"
+        y="4"
+        width="8"
+        height="16"
+        rx="2"
+        [attr.fill]="filled() ? 'currentColor' : 'none'"
+        [attr.stroke]="filled() ? 'none' : 'currentColor'"
+      />
+    }
+    @case ('play') {
+      <polygon
+        points="9,5 20,12 9,19"
+        [attr.fill]="filled() ? 'currentColor' : 'none'"
+        [attr.stroke]="filled() ? 'none' : 'currentColor'"
+        stroke-linejoin="round"
+      />
+    }
+    @case ('sound-wave-progress') {
+      <rect class="icon__wave-bar" x="4" y="9" width="3" height="6" rx="1.5" fill="currentColor" />
+      <rect class="icon__wave-bar" x="10.5" y="4" width="3" height="16" rx="1.5" fill="currentColor" />
+      <rect class="icon__wave-bar" x="17" y="7" width="3" height="10" rx="1.5" fill="currentColor" />
+    }
+    @case ('sound-wave-play') {
+      <rect class="icon__wave-bar icon__wave-bar--paused" x="4" y="9" width="3" height="6" rx="1.5" fill="currentColor" />
+      <rect class="icon__wave-bar icon__wave-bar--paused" x="10.5" y="4" width="3" height="16" rx="1.5" fill="currentColor" />
+      <rect class="icon__wave-bar icon__wave-bar--paused" x="17" y="7" width="3" height="10" rx="1.5" fill="currentColor" />
+    }
+    @case ('error') {
+      <circle cx="12" cy="12" r="9" stroke="currentColor" fill="none" />
+      <line x1="12" y1="8" x2="12" y2="13" stroke="currentColor" stroke-linecap="round" />
+      <circle cx="12" cy="16.5" r="1" fill="currentColor" stroke="none" />
+    }
+    @case ('send') {
+      <svg viewBox="0 0 16 16" fill="currentColor" width="100%" height="100%">
+        <path
+          d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"
+        />
+      </svg>
+    }
+    @case ('reset') {
+      <polyline points="1 4 1 10 7 10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="currentColor" stroke-linecap="round" />
+    }
+    @case ('compose') {
+      <path
+        d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4.5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"
+        [attr.fill]="filled() ? 'currentColor' : 'none'"
+        [attr.stroke]="filled() ? 'none' : 'currentColor'"
+        stroke-linejoin="round"
+      />
+    }
+  }
+</svg>
