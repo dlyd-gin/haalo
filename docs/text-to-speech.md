@@ -60,15 +60,15 @@ audio can finish preloading before an earlier one's**. Autoplay still has to hon
 the store keeps an explicit FIFO:
 
 ```ts
-private readonly playbackQueue: string[] = [];   // turn ids, in send order
-private isAutoPlaying = false;
+#playbackQueue: string[] = [];   // turn ids, in send order
+#isAutoPlaying = false;
 ```
 
 ```
 sendReply(A) ──► playbackQueue: [A]
 sendReply(B) ──► playbackQueue: [A, B]     (B's translation/TTS might resolve first!)
 
-tryPlayNextInQueue():
+#tryPlayNextInQueue():
   ┌─────────────────────────────────────────────────────────┐
   │ already auto-playing? ──yes──► do nothing (next 'ended'  │
   │        │no                      /'error' will re-trigger)│
@@ -78,19 +78,19 @@ tryPlayNextInQueue():
   │        ▼                which finished preloading first)  │
   │ is A's TtsHandle preloaded yet?                            │
   │        │no ──► bail; A's own 'done' handler will call     │
-  │        │        tryPlayNextInQueue() again once ready      │
+  │        │        #tryPlayNextInQueue() again once ready     │
   │        │yes                                                │
   │        ▼                                                   │
   │ play A; on `ended` OR `errors` (whichever first) →         │
-  │   pop A off the queue, tryPlayNextInQueue() again (→ B)    │
+  │   pop A off the queue, #tryPlayNextInQueue() again (→ B)   │
   └─────────────────────────────────────────────────────────┘
 ```
 
-So B's audio may finish *downloading* before A's, but it never plays before A — `tryPlayNextInQueue`
+So B's audio may finish *downloading* before A's, but it never plays before A — `#tryPlayNextInQueue`
 always checks the head of the queue, not "whichever just became ready."
 
 Manual playback (pressing play on a specific bubble via `playTurnAudio(turnId)`) bypasses the
-queue entirely — it's direct, user-initiated, and doesn't touch `playbackQueue`/`isAutoPlaying`.
+queue entirely — it's direct, user-initiated, and doesn't touch `#playbackQueue`/`#isAutoPlaying`.
 The queue only governs *automatic* playback triggered by a reply becoming ready.
 
 ## Backend: `tts-service`

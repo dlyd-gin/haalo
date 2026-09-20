@@ -22,7 +22,7 @@ import { orderLanguagesBySelected } from '../../../domain/language/language.rule
 })
 export class LanguagePicker {
   protected readonly store = inject(ConversationStore);
-  private readonly destroyRef = inject(DestroyRef);
+  #destroyRef = inject(DestroyRef);
 
   protected readonly languages = SUPPORTED_LANGUAGES;
   protected readonly orderedLanguages = computed(() =>
@@ -58,7 +58,7 @@ export class LanguagePicker {
       document.addEventListener('pointerdown', onDocumentPointerDown, { capture: true });
       document.addEventListener('keydown', onDocumentKeydown);
 
-      this.destroyRef.onDestroy(() => {
+      this.#destroyRef.onDestroy(() => {
         document.removeEventListener('pointerdown', onDocumentPointerDown, { capture: true });
         document.removeEventListener('keydown', onDocumentKeydown);
       });

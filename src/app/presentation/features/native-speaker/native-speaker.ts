@@ -22,7 +22,7 @@ import { MicButton } from '../../shared/mic-button/mic-button';
 })
 export class NativeSpeaker {
   protected readonly store = inject(ConversationStore);
-  private readonly destroyRef = inject(DestroyRef);
+  #destroyRef = inject(DestroyRef);
 
   protected readonly draftText = signal('');
   protected readonly canSend = computed(
@@ -62,7 +62,7 @@ export class NativeSpeaker {
       document.addEventListener('pointerdown', onDocumentPointerDown, { capture: true });
       document.addEventListener('keydown', onDocumentKeydown);
 
-      this.destroyRef.onDestroy(() => {
+      this.#destroyRef.onDestroy(() => {
         document.removeEventListener('pointerdown', onDocumentPointerDown, { capture: true });
         document.removeEventListener('keydown', onDocumentKeydown);
       });
