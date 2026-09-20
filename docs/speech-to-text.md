@@ -73,7 +73,7 @@ native-speaker capture (dictation):
 4. The response is a `text/event-stream` (SSE) body; the adapter reads it frame-by-frame
    (`data: {...}\n\n`), parsing each JSON payload as `{ type: 'delta' | 'done' | 'error', ... }`
    and re-emitting it as the corresponding `SttStreamEvent`.
-5. On the *foreign-speaker* path only, once `source-done` arrives, `translateAndComplete()` opens
+5. On the *foreign-speaker* path only, once `source-done` arrives, `#translateAndComplete()` opens
    a second stream — this time against `TRANSLATOR_PORT` (translator-service, chained through the
    *same* `Observable<SttStreamEvent>` the store is subscribed to) — re-emitting its `delta`/`done`
    events as `translation-delta`/`done`. This is why `stt.port.ts`'s event union includes

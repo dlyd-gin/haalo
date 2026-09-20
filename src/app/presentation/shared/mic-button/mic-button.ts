@@ -17,7 +17,7 @@ export class MicButton {
   readonly pressEnd = output<void>();
   readonly pressCancel = output<void>();
 
-  private spaceHeld = false;
+  #spaceHeld = false;
 
   onPointerDown(event: PointerEvent): void {
     if (this.isProcessing() || this.isRecording()) {
@@ -45,20 +45,20 @@ export class MicButton {
     if (event.code !== 'Space') {
       return;
     }
-    if (event.repeat || this.spaceHeld || this.isProcessing() || this.isRecording()) {
+    if (event.repeat || this.#spaceHeld || this.isProcessing() || this.isRecording()) {
       return;
     }
     event.preventDefault();
-    this.spaceHeld = true;
+    this.#spaceHeld = true;
     this.pressStart.emit();
   }
 
   onKeyUp(event: KeyboardEvent): void {
-    if (event.code !== 'Space' || !this.spaceHeld) {
+    if (event.code !== 'Space' || !this.#spaceHeld) {
       return;
     }
     event.preventDefault();
-    this.spaceHeld = false;
+    this.#spaceHeld = false;
     this.pressEnd.emit();
   }
 }
