@@ -4,12 +4,18 @@
       <message-bubble
         [turn]="turn"
         [align]="turn.originSplit === 'native-speaker' ? 'end' : 'start'"
+        (previewAttachment)="store.openPreview('attachment')"
+        (previewSuggestion)="store.openPreview('suggestion')"
       />
     }
   </div>
 
   <div class="native-speaker__composer-wrap" #composerRoot>
-    <div class="native-speaker__composer" [class.native-speaker__composer--expanded]="isExpanded()">
+    <div
+      class="native-speaker__composer"
+      [class.native-speaker__composer--expanded]="isExpanded()"
+      [class.native-speaker__composer--with-attachment]="isExpanded() && pendingAttachment()"
+    >
       @if (!isExpanded()) {
         <button
           type="button"
@@ -23,14 +29,51 @@
           <svg-icon name="compose" size="md" [filled]="true" />
         </button>
       } @else {
+        @if (pendingAttachment(); as file) {
+          <div
+            class="native-speaker__attachment"
+            [class.native-speaker__attachment--error]="attachmentError()"
+          >
+            <svg-icon [name]="attachmentError() ? 'error' : 'attach'" size="sm" />
+            <span class="native-speaker__attachment-name">{{ file.name }}</span>
+            @if (attachmentError(); as error) {
+              <span class="native-speaker__attachment-error">{{ error }}</span>
+            }
+            <button
+              type="button"
+              class="native-speaker__attachment-remove"
+              (click)="removeAttachment()"
+              [attr.aria-label]="'Remove attachment ' + file.name"
+            >
+              <svg-icon name="close" size="sm" />
+            </button>
+          </div>
+        }
         <textarea
           class="native-speaker__input"
-          placeholder="Type your reply…"
+          [placeholder]="pendingAttachment() ? 'What are you looking for in it?' : 'Type your reply…'"
           [value]="draftText()"
           (input)="onInput($any($event.target).value)"
           (keydown)="onKeydown($event)"
           #textareaEl
         ></textarea>
+        <input
+          type="file"
+          class="native-speaker__file-input"
+          accept="application/pdf,.pdf,image/*,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          tabindex="-1"
+          aria-hidden="true"
+          (change)="onFileSelected($any($event.target))"
+          #fileInput
+        />
+        <button
+          type="button"
+          class="native-speaker__attach"
+          (click)="onAttachClick()"
+          aria-label="Attach a PDF, image or Word document"
+        >
+          <svg-icon name="attach" size="sm" />
+        </button>
         <mic-button
           [size]="'sm'"
           [iconSize]="'sm'"

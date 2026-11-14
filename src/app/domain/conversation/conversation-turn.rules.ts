@@ -1,5 +1,5 @@
 import { Language } from '../language/language';
-import { ConversationTurn, SplitId } from './conversation-turn';
+import { ConversationTurn, SplitId, TurnAttachment } from './conversation-turn';
 
 export function createRecordingTurn(
   id: string,
@@ -30,6 +30,24 @@ export function createReplyTurn(
     originSplit: 'native-speaker',
     status: 'processing',
     sourceText,
+  };
+}
+
+export function createAttachmentTurn(
+  id: string,
+  createdAt: number,
+  instruction: string,
+  attachment: TurnAttachment,
+  language: Language,
+): ConversationTurn {
+  return {
+    id,
+    createdAt,
+    language,
+    originSplit: 'native-speaker',
+    status: 'processing',
+    sourceText: instruction,
+    attachment,
   };
 }
 
@@ -99,6 +117,51 @@ export function markTurnError(
 ): ConversationTurn[] {
   return turns.map((turn) =>
     turn.id === id ? { ...turn, status: 'error' as const, errorMessage } : turn,
+  );
+}
+
+export function setSuggestionFile(
+  turns: readonly ConversationTurn[],
+  id: string,
+  fileName: string,
+): ConversationTurn[] {
+  return turns.map((turn) =>
+    turn.id === id ? { ...turn, suggestion: { ...turn.suggestion, fileName } } : turn,
+  );
+}
+
+export function completeSuggestionTurn(
+  turns: readonly ConversationTurn[],
+  id: string,
+  summary: string,
+  highlights: readonly string[],
+): ConversationTurn[] {
+  return turns.map((turn) =>
+    turn.id === id
+      ? {
+          ...turn,
+          status: 'ready' as const,
+          suggestion: { ...turn.suggestion, summary, highlights },
+        }
+      : turn,
+  );
+}
+
+// Still 'ready', not 'error': the highlighted document arrived and can be previewed without a summary.
+export function markSuggestionSummaryError(
+  turns: readonly ConversationTurn[],
+  id: string,
+  summaryError: string,
+  highlights: readonly string[],
+): ConversationTurn[] {
+  return turns.map((turn) =>
+    turn.id === id
+      ? {
+          ...turn,
+          status: 'ready' as const,
+          suggestion: { ...turn.suggestion, summaryError, highlights },
+        }
+      : turn,
   );
 }
 

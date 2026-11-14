@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { extractFetchErrorMessage } from '../http/http-error.util';
 import { TranslatorPort, TranslationStreamEvent } from './translator.port';
 
 type TranslateSseEvent =
@@ -17,24 +18,6 @@ const TRANSLATOR_SERVICE_LANGUAGE_CODES: Record<string, string> = {
 
 function toTranslatorServiceCode(languageCode: string): string {
   return TRANSLATOR_SERVICE_LANGUAGE_CODES[languageCode] ?? languageCode;
-}
-
-async function extractErrorMessage(response: Response): Promise<string> {
-  try {
-    const body: unknown = await response.json();
-    if (body && typeof body === 'object') {
-      const record = body as Record<string, unknown>;
-      if (typeof record['error'] === 'string') {
-        return record['error'];
-      }
-      if (typeof record['detail'] === 'string') {
-        return record['detail'];
-      }
-    }
-  } catch {
-    // body wasn't JSON — fall through to statusText below.
-  }
-  return response.statusText || `translate request failed: ${response.status}`;
 }
 
 @Injectable()
@@ -60,7 +43,7 @@ export class RealTranslatorAdapter implements TranslatorPort {
         });
 
         if (!response.ok || !response.body) {
-          throw new Error(await extractErrorMessage(response));
+          throw new Error(await extractFetchErrorMessage(response));
         }
 
         const reader = response.body.getReader();

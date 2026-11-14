@@ -1,0 +1,28 @@
+[project]
+name = "document-service"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pdfplumber",
+    "pypdf",
+    "pillow",
+    "python-multipart",
+    "python-docx>=1.2.0",
+    "httpx",
+    "numpy",
+    "opencv-python-headless",
+]
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.13.1",
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

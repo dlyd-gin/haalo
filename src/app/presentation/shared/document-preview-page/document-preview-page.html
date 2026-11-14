@@ -1,0 +1,90 @@
+<section class="preview-page" [attr.aria-label]="title()">
+  <div class="preview-page__body">
+    <nav class="preview-page__list" [attr.aria-label]="title()">
+      @for (item of items(); track item.turnId) {
+        <button
+          type="button"
+          class="preview-page__item"
+          [class.preview-page__item--selected]="item.turnId === selectedId()"
+          [attr.aria-current]="item.turnId === selectedId() ? 'true' : null"
+          [title]="item.fileName"
+          (click)="select(item.turnId)"
+        >
+          <svg-icon [name]="shownSource() === 'suggestion' ? 'preview' : 'attach'" size="sm" />
+          <span class="preview-page__item-name">{{ item.fileName }}</span>
+        </button>
+      } @empty {
+        <p class="preview-page__status">No documents yet.</p>
+      }
+    </nav>
+
+    <div class="preview-page__viewer">
+      <div class="preview-page__actions">
+        @if (selected(); as item) {
+          @if (objectUrl(); as url) {
+            <a
+              class="preview-page__action"
+              [href]="url"
+              [attr.download]="item.fileName"
+              aria-label="Download document"
+            >
+              <svg-icon name="download" size="sm" />
+            </a>
+          }
+        }
+        <button
+          type="button"
+          class="preview-page__action"
+          (click)="closed.emit()"
+          aria-label="Close preview"
+          #closeButton
+        >
+          <svg-icon name="close" size="sm" />
+        </button>
+      </div>
+      <div class="preview-page__scroll">
+        @if (selected(); as item) {
+          @if (!item.blob) {
+            <p class="preview-page__status preview-page__status--error" role="alert">
+              <svg-icon name="error" size="sm" aria-hidden="true" />
+              This document is no longer available.
+            </p>
+          } @else {
+            @switch (item.kind) {
+              @case ('image') {
+                @if (objectUrl(); as url) {
+                  <img class="preview-page__image" [src]="url" [alt]="item.fileName" />
+                }
+              }
+              @case ('pdf') {
+                @if (frameUrl(); as url) {
+                  <iframe class="preview-page__frame" [src]="url" [title]="item.fileName"></iframe>
+                }
+              }
+              @case ('docx') {
+                @switch (docxStatus()) {
+                  @case ('loading') {
+                    <p class="preview-page__status" role="status">Rendering document…</p>
+                  }
+                  @case ('error') {
+                    <p class="preview-page__status preview-page__status--error" role="alert">
+                      <svg-icon name="error" size="sm" aria-hidden="true" />
+                      Couldn't render this document — download it instead.
+                    </p>
+                  }
+                }
+              }
+            }
+          }
+        } @else {
+          <p class="preview-page__status preview-page__status--empty">Select a document</p>
+        }
+        <div
+          class="preview-page__pages"
+          [class.preview-page__pages--hidden]="selected()?.kind !== 'docx' || docxStatus() !== 'ready'"
+          #pageHost
+        ></div>
+      </div>
+    </div>
+  </div>
+</section>

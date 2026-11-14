@@ -60,6 +60,18 @@ __screenshots__/
 /services/translator-service/**/__pycache__
 /services/translator-service/.env
 
+# Python PDF service
+/services/document-service/.venv
+/services/document-service/**/__pycache__
+/services/document-service/.env
+
+# Python OCR service
+/services/ocr-service/.venv
+/services/ocr-service/models/*
+!/services/ocr-service/models/.gitkeep
+/services/ocr-service/**/__pycache__
+/services/ocr-service/.env
+
 # System files
 .DS_Store
 Thumbs.db

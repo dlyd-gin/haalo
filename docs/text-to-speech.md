@@ -14,6 +14,7 @@ handle** — the store manages *when* to play/pause, the handle just exposes the
 
 ```ts
 interface TtsHandle {
+  preload(text: string, language: Language): void;
   play(): Promise<void>;
   pause(): void;
   readonly errors: Observable<Error>;
@@ -22,21 +23,31 @@ interface TtsHandle {
 }
 
 interface TtsPort {
-  preload(text: string, language: Language): TtsHandle;
+  create(): TtsHandle;
 }
 ```
 
-`preload()` is called as soon as a reply's translation finishes (`conversation-store.ts`'s
-`sendReply()`), *before* the user has necessarily pressed play — the audio starts downloading
-immediately so it's ready by the time playback is requested (or autoplay kicks in, see below).
+The handle is created in two steps, both in `conversation-store.ts`'s `sendReply()`:
+
+1. `create()` runs synchronously when the user clicks send or presses Enter, *inside* that user
+   gesture (see [Safari autoplay](#safari-autoplay) for why).
+2. `handle.preload()` runs as soon as the reply's translation finishes, *before* the user has
+   necessarily pressed play. The audio starts downloading immediately, so it's ready by the time
+   playback is requested (or autoplay kicks in, see below).
 
 ## `RealTtsAdapter` (`infrastructure/speech/real-tts.adapter.ts`)
 
 Deliberately thin — it does no manual audio buffering itself:
 
 ```ts
+// create()
 const audio = new Audio();
 audio.preload = 'auto';
+audio.src = SILENT_WAV;           // unlock for Safari, see below
+audio.play().catch(() => {});
+audio.pause();
+
+// handle.preload(text, language)
 audio.src = `/api/tts?text=${encodeURIComponent(text)}&language=${encodeURIComponent(language.code)}`;
 ```
 
@@ -45,6 +56,43 @@ and playback on its own — the browser starts playing as soon as it has enough 
 the adapter needing to read/queue byte chunks itself. `errors`/`ended` are just the element's own
 `error`/`ended` DOM events, remapped to observables via `fromEvent`. `dispose()` pauses, clears
 `src`, and calls `.load()` to release the underlying resource.
+
+### Safari autoplay
+
+Autoplay calls `play()` seconds after the send gesture, once translation is done. Chrome allows
+that because the page has already had a user interaction. Safari only allows an unmuted `play()`
+outside a gesture if **that same `<audio>` element** was already played inside one. A fresh
+element would be rejected with `NotAllowedError`. So `create()` runs inside the send gesture and
+plays, then immediately pauses, a tiny silent WAV on the new element to unlock it.
+
+## Safari / WebKit: `WebAudioTtsAdapter` (`infrastructure/speech/web-audio-tts.adapter.ts`)
+
+Even with the element unlocked, WebKit can't play this stream through `<audio src>`: `play()`
+rejects with `NotSupportedError`. WebKit's media loader needs a source it can fetch with byte-range
+requests and a known length. `/api/tts` is a chunked stream with no `Content-Length` and no
+`Range` support, and its WAV header declares the sizes as `0xFFFFFFFF`. Chrome tolerates that;
+WebKit doesn't.
+
+So WebKit browsers play the same stream through Web Audio instead:
+
+- `create()` lazily creates one shared `AudioContext` and calls `resume()` on it. This runs inside
+  the send gesture, which is what unlocks Web Audio output in Safari.
+- `preload()` `fetch`es `/api/tts` and reads the body chunk by chunk. `parseWavHeader` and
+  `Pcm16Decoder` (`pcm-wav-stream.ts`, pure and unit-tested) turn the bytes into float samples,
+  and each chunk becomes an `AudioBuffer`.
+- `play()` schedules the buffered chunks back to back as `AudioBufferSourceNode`s, and schedules
+  new chunks as they arrive. Playback starts before synthesis has finished, just like the `<audio>`
+  path. If the download falls behind, the next chunk starts "now" (a short gap, not a failure).
+- `pause()` stops the scheduled sources and remembers the position. `ended` fires once the download
+  is done and the last chunk has played, and the position resets so a replay starts from the top.
+  The buffers are kept, so a replay doesn't re-request synthesis.
+
+`app.config.ts` picks the adapter once, from `isWebKitOnly(navigator.userAgent)` (`webkit.ts`):
+- macOS Safari and every iOS browser get `WebAudioTtsAdapter`. On iOS, Chrome and Firefox are
+  WebKit too.
+- Chrome, Edge, Opera and Firefox keep `RealTtsAdapter`.
+
+`TtsPort`/`TtsHandle` are the same for both, so `conversation-store.ts` doesn't know which one it has.
 
 ## `DummyTtsAdapter`
 

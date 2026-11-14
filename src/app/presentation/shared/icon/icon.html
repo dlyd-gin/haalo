@@ -101,5 +101,36 @@
         stroke-linejoin="round"
       />
     }
+    @case ('attach') {
+      <path
+        d="M20.5 11.5 12.6 19.4a5 5 0 0 1-7.1-7.1l8.5-8.5a3.33 3.33 0 0 1 4.7 4.7l-8.5 8.5a1.67 1.67 0 0 1-2.36-2.36l7.8-7.8"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    }
+    @case ('preview') {
+      <path
+        d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"
+        stroke="currentColor"
+        stroke-linejoin="round"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="3"
+        [attr.fill]="filled() ? 'currentColor' : 'none'"
+        [attr.stroke]="filled() ? 'none' : 'currentColor'"
+      />
+    }
+    @case ('download') {
+      <line x1="12" y1="4" x2="12" y2="15" stroke="currentColor" stroke-linecap="round" />
+      <polyline points="7 10 12 15 17 10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+      <line x1="5" y1="20" x2="19" y2="20" stroke="currentColor" stroke-linecap="round" />
+    }
+    @case ('close') {
+      <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-linecap="round" />
+      <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-linecap="round" />
+    }
   }
 </svg>

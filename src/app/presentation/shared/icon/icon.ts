@@ -11,7 +11,11 @@ export type IconName =
   | 'error'
   | 'send'
   | 'reset'
-  | 'compose';
+  | 'compose'
+  | 'attach'
+  | 'preview'
+  | 'download'
+  | 'close';
 
 @Component({
   selector: 'svg-icon',

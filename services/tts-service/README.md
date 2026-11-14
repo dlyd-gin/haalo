@@ -19,7 +19,8 @@ uv run hf download mlx-community/Qwen3-TTS-12Hz-1.7B-Base-8bit \
   --local-dir models/Qwen3-TTS-12Hz-1.7B-Base-8bit
 ```
 
-Copy `.env.example` to `.env` and adjust if needed (defaults already point at the path above).
+Settings are environment variables prefixed `TTS_` (`TTS_MODEL_PATH`, `TTS_HOST`, `TTS_PORT`; see
+`app/config.py`); the defaults already point at the path above.
 
 ## Run
 
@@ -51,7 +52,9 @@ GET (not POST) so an `<audio src>` element can point straight at this endpoint a
 progressively. Returns `audio/wav` bytes as they're generated, with a streaming-WAV header
 (RIFF/data chunk sizes left unspecified since the total length isn't known up front) — no
 `Content-Length`, no HTTP Range/seeking support. `language` must be one of the keys in
-`app/config.py`'s `LANGUAGE_VOICE_MAP` (currently `en`, `ja`, `zh`) or the request 400s.
+`app/config.py`'s `LANGUAGE_VOICE_MAP` (currently `en`, `ja`, `zh`, `ko`) or the request 400s; so does an
+empty `text`. Requests are serialized (one synthesis at a time, since the model's streaming decoder state
+is shared).
 
 ## Known risk: `voice` names don't currently select a voice
 
@@ -66,7 +69,8 @@ via `ref_audio`/`ref_text`) would be needed for actual voice selection.
 What *is* real is `language`: it maps to `config.talker_config.codec_language_id`, which the
 downloaded checkpoint lists as `chinese`, `english`, `german`, `italian`, `portuguese`, `spanish`,
 `japanese`, `korean`, `french`, `russian` — so output *language* is genuinely selected even though
-voice *identity* isn't. `ja`'s output language quality is unvalidated; confirm by ear:
+voice *identity* isn't. `ja`'s and `ko`'s output language quality is unvalidated (both are marked PROVISIONAL in `config.py`);
+confirm by ear:
 
 ```bash
 curl -G http://localhost:8000/synthesize \
@@ -76,7 +80,7 @@ curl -G http://localhost:8000/synthesize \
 afplay test-ja.wav
 ```
 
-If the output isn't intelligible Japanese, look at mlx-community's Qwen3-TTS `VoiceDesign` or
+Likewise for `ko`. If the output isn't intelligible Japanese or Korean, look at mlx-community's Qwen3-TTS `VoiceDesign` or
 `CustomVoice` model variants, which may handle this differently.
 
 ## Mandarin voice
@@ -105,5 +109,5 @@ separate translation step, not implemented here).
 ## Dev workflow
 
 Run this service in one terminal (`uv run uvicorn app.main:app --port 8000`) and the Angular app
-(`npm start`) in another. The Angular SSR server proxies `/api/tts` to `TTS_SERVICE_URL` (env var,
+(`npm start`) in another; `start-dev.sh` launches both, plus the other Python services. The Angular SSR server proxies `/api/tts` to `TTS_SERVICE_URL` (env var,
 defaults to `http://localhost:8000`).

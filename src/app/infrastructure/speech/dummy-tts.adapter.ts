@@ -10,10 +10,11 @@ const SIMULATED_PLAYBACK_MS = 300;
 
 @Injectable()
 export class DummyTtsAdapter implements TtsPort {
-  preload(text: string, language: Language): TtsHandle {
-    console.log('[DummyTtsAdapter] preload requested', { text, language: language.code });
-
+  create(): TtsHandle {
     return {
+      preload: (text: string, language: Language) => {
+        console.log('[DummyTtsAdapter] preload requested', { text, language: language.code });
+      },
       play: () => Promise.resolve(),
       pause: () => {},
       errors: NEVER as Observable<Error>,

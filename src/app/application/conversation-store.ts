@@ -6,18 +6,23 @@ import {
   addReplyTurn,
   appendSttSourceDelta,
   appendTranslationDelta,
+  completeSuggestionTurn,
   completeTtsTurn,
+  createAttachmentTurn,
   createRecordingTurn,
   createReplyTurn,
   markSttSourceStreaming,
+  markSuggestionSummaryError,
   markTurnError,
   markTurnProcessing,
   markTurnStreaming,
   resetConversation,
+  setSuggestionFile,
 } from '../domain/conversation/conversation-turn.rules';
-import { ConversationTurn } from '../domain/conversation/conversation-turn';
+import { AttachmentKind, ConversationTurn } from '../domain/conversation/conversation-turn';
 import { Language } from '../domain/language/language';
 import { DEFAULT_LANGUAGE } from '../domain/language/language-catalog';
+import { DOCUMENT_PORT } from '../infrastructure/document/document.port';
 import { STT_PORT, SttStreamEvent } from '../infrastructure/speech/stt.port';
 import { TTS_PORT, TtsHandle } from '../infrastructure/speech/tts.port';
 import { TRANSLATOR_PORT } from '../infrastructure/translation/translator.port';
@@ -35,11 +40,15 @@ const NATIVE_LANGUAGE: Language = {
   flagCountryCode: 'gb',
 };
 
+// 'attachment' = the documents the native speaker attached; 'suggestion' = the highlighted document results.
+export type PreviewSource = 'attachment' | 'suggestion';
+
 @Injectable({ providedIn: 'root' })
 export class ConversationStore {
   #stt = inject(STT_PORT);
   #tts = inject(TTS_PORT);
   #translator = inject(TRANSLATOR_PORT);
+  #document = inject(DOCUMENT_PORT);
   #liveAnnouncer = inject(LiveAnnouncer);
 
   #turns = signal<ConversationTurn[]>([]);
@@ -61,6 +70,14 @@ export class ConversationStore {
 
   #activeRecordingTurnId: string | null = null;
   #ttsHandles = new Map<string, TtsHandle>();
+  // Highlighted docx per attachment turn — kept out of turn state, like the TTS handles.
+  #suggestionFiles = new Map<string, Blob>();
+  // The original attached file per attachment turn, for the preview page.
+  #attachmentFiles = new Map<string, File>();
+
+  // Which document list the preview page shows; null = the conversation is in view.
+  #previewSource = signal<PreviewSource | null>(null);
+  readonly previewSource = this.#previewSource.asReadonly();
 
   // The turn whose audio is currently actually playing (not merely "ready") —
   // cleared on pause, on natural completion (`handle.ended`), and on error, so
@@ -155,6 +172,9 @@ export class ConversationStore {
     this.#isSending.set(true);
     this.#turns.update((turns) => addReplyTurn(turns, turn));
     this.#playbackQueue.push(id);
+    // Created now, while still inside the send click/Enter gesture — Safari only lets this
+    // handle autoplay later (once translation is done) if its audio was unlocked in a gesture.
+    const handle = this.#tts.create();
     console.log('[ConversationStore] sendReply, requesting translation', id);
 
     const startedAt = performance.now();
@@ -189,7 +209,7 @@ export class ConversationStore {
           // Preload starts the audio stream immediately (eager, same trigger point as
           // before) — the turn is "ready" as soon as streaming has started, not once the
           // whole clip has finished generating/downloading.
-          const handle = this.#tts.preload(event.translatedText, this.#foreignLanguage());
+          handle.preload(event.translatedText, this.#foreignLanguage());
           this.#ttsHandles.set(id, handle);
           handle.errors.subscribe((error) => {
             this.#turns.update((turns) => markTurnError(turns, id, error.message));
@@ -218,10 +238,73 @@ export class ConversationStore {
           const message = error instanceof Error ? error.message : String(error);
           this.#turns.update((turns) => markTurnError(turns, id, message));
           this.#isSending.set(false);
+          handle.dispose();
           this.#removeFromPlaybackQueue(id);
           this.#tryPlayNextInQueue();
         },
       });
+  }
+
+  // The text is the instruction for the attached document (e.g. "something light to eat"): it
+  // isn't translated or spoken, the turn only shows on the native side with the summary + preview.
+  sendAttachment(instruction: string, file: File, kind: AttachmentKind): void {
+    const trimmed = instruction.trim();
+    if (!trimmed) {
+      return;
+    }
+    const id = crypto.randomUUID();
+    const turn = createAttachmentTurn(
+      id,
+      Date.now(),
+      trimmed,
+      { fileName: file.name, kind },
+      this.#foreignLanguage(),
+    );
+    this.#turns.update((turns) => addReplyTurn(turns, turn));
+    this.#attachmentFiles.set(id, file);
+    console.log('[ConversationStore] sendAttachment, requesting suggestion', id, kind);
+
+    this.#document.suggest(file, trimmed).subscribe({
+      next: (event) => {
+        switch (event.type) {
+          case 'file':
+            this.#suggestionFiles.set(id, event.blob);
+            this.#turns.update((turns) => setSuggestionFile(turns, id, event.fileName));
+            break;
+          case 'summary':
+            this.#turns.update((turns) =>
+              completeSuggestionTurn(turns, id, event.summary, event.highlights),
+            );
+            this.#liveAnnouncer.announce(event.summary, 'polite');
+            break;
+          case 'summary-error':
+            this.#turns.update((turns) =>
+              markSuggestionSummaryError(turns, id, event.message, event.highlights),
+            );
+            break;
+        }
+      },
+      error: (error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        this.#turns.update((turns) => markTurnError(turns, id, message));
+      },
+    });
+  }
+
+  suggestionFile(turnId: string): Blob | undefined {
+    return this.#suggestionFiles.get(turnId);
+  }
+
+  attachmentFile(turnId: string): File | undefined {
+    return this.#attachmentFiles.get(turnId);
+  }
+
+  openPreview(source: PreviewSource): void {
+    this.#previewSource.set(source);
+  }
+
+  closePreview(): void {
+    this.#previewSource.set(null);
   }
 
   playTurnAudio(turnId: string): void {
@@ -281,6 +364,9 @@ export class ConversationStore {
     this.#playingTurnId.set(nextId);
     handle.play().catch((error: unknown) => {
       console.error('[ConversationStore] audio playback failed', error);
+      if (this.#playingTurnId() === nextId) {
+        this.#playingTurnId.set(null);
+      }
       advance();
     });
   }
@@ -297,6 +383,9 @@ export class ConversationStore {
       handle.dispose();
     }
     this.#ttsHandles.clear();
+    this.#suggestionFiles.clear();
+    this.#attachmentFiles.clear();
+    this.#previewSource.set(null);
     this.#playbackQueue.length = 0;
     this.#isAutoPlaying = false;
     this.#playingTurnId.set(null);

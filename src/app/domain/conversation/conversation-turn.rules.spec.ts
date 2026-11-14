@@ -5,14 +5,18 @@ import {
   addReplyTurn,
   appendSttSourceDelta,
   appendTranslationDelta,
+  completeSuggestionTurn,
   completeTtsTurn,
+  createAttachmentTurn,
   createRecordingTurn,
   createReplyTurn,
   markSttSourceStreaming,
+  markSuggestionSummaryError,
   markTurnError,
   markTurnProcessing,
   markTurnStreaming,
   resetConversation,
+  setSuggestionFile,
 } from './conversation-turn.rules';
 
 describe('conversation-turn.rules', () => {
@@ -158,5 +162,50 @@ describe('conversation-turn.rules', () => {
 
   it('resetConversation returns an empty array', () => {
     expect(resetConversation()).toEqual([]);
+  });
+
+  describe('attachment turns', () => {
+    const attachment = { fileName: 'menu.pdf', kind: 'pdf' as const };
+
+    it('createAttachmentTurn builds a processing native-speaker turn with the instruction', () => {
+      const turn = createAttachmentTurn('a1', 5, 'something light', attachment, DEFAULT_LANGUAGE);
+
+      expect(turn).toEqual({
+        id: 'a1',
+        createdAt: 5,
+        language: DEFAULT_LANGUAGE,
+        originSplit: 'native-speaker',
+        status: 'processing',
+        sourceText: 'something light',
+        attachment,
+      });
+    });
+
+    it('records the file, then the summary, and becomes ready', () => {
+      let turns = [createAttachmentTurn('a1', 5, 'light', attachment, DEFAULT_LANGUAGE)];
+      turns = setSuggestionFile(turns, 'a1', 'suggested-menu.docx');
+      expect(turns[0].status).toBe('processing');
+      expect(turns[0].suggestion).toEqual({ fileName: 'suggested-menu.docx' });
+
+      turns = completeSuggestionTurn(turns, 'a1', 'Try the salad.', ['Salad']);
+      expect(turns[0].status).toBe('ready');
+      expect(turns[0].suggestion).toEqual({
+        fileName: 'suggested-menu.docx',
+        summary: 'Try the salad.',
+        highlights: ['Salad'],
+      });
+    });
+
+    it('a summary error keeps the turn ready with the file still available', () => {
+      let turns = [createAttachmentTurn('a1', 5, 'light', attachment, DEFAULT_LANGUAGE)];
+      turns = setSuggestionFile(turns, 'a1', 'suggested-menu.docx');
+      turns = markSuggestionSummaryError(turns, 'a1', 'translator down', ['Salad']);
+      expect(turns[0].status).toBe('ready');
+      expect(turns[0].suggestion).toEqual({
+        fileName: 'suggested-menu.docx',
+        summaryError: 'translator down',
+        highlights: ['Salad'],
+      });
+    });
   });
 });
