@@ -44,3 +44,19 @@ export async function extractHttpErrorMessage(error: unknown): Promise<string> {
   }
   return String(error);
 }
+
+/**
+ * For plain `fetch` calls (streaming endpoints the HttpClient can't consume incrementally):
+ * the `{ error }` / `{ detail }` JSON body, falling back to the status text.
+ */
+export async function extractFetchErrorMessage(response: Response): Promise<string> {
+  try {
+    const message = extractFromBody(await response.json());
+    if (message !== undefined) {
+      return message;
+    }
+  } catch {
+    // body wasn't JSON — fall through to statusText below.
+  }
+  return response.statusText || `request failed: ${response.status}`;
+}

@@ -1,0 +1,201 @@
+@use '../../styles/glass';
+
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  // Corners come from .app-stage (app.scss), which squares whichever edge meets the header.
+  border-radius: inherit;
+}
+
+.preview-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  color: var(--color-text-vibrant);
+  @include glass.glass-panel('lg', inherit, var(--glass-surface-strong));
+}
+
+.preview-page__action {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  @include glass.glass-press;
+
+  &:hover {
+    @include glass.glass-panel('sm', var(--radius-pill));
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+.preview-page__body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(12rem, 18rem) 1fr;
+}
+
+.preview-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-sm);
+  border-right: 1px solid var(--glass-border);
+}
+
+.preview-page__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  min-width: 0;
+  padding: var(--space-sm);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--easing-standard);
+
+  svg-icon {
+    flex: none;
+    color: var(--color-text-muted);
+  }
+
+  &:hover {
+    background: var(--color-surface-raised);
+  }
+
+  &--selected {
+    background: var(--color-accent-muted);
+    color: var(--color-accent);
+
+    svg-icon {
+      color: var(--color-accent);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+}
+
+.preview-page__item-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.preview-page__viewer {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.preview-page__scroll {
+  height: 100%;
+  overflow: auto;
+}
+
+// Floats over the top-right of the document instead of a header bar. Lives outside the scroller so it
+// stays pinned while the pages scroll beneath it; the right offset matches .docx-page-wrapper's
+// padding (landing it on the paper's corner) plus room for the scrollbar.
+.preview-page__actions {
+  position: absolute;
+  top: var(--space-md);
+  right: calc(var(--space-md) + var(--space-sm));
+  z-index: 1;
+  display: flex;
+  gap: var(--space-xs);
+  // Shrink-wrapped to the buttons, no backing of its own. Deliberately not glass.glass-panel: its
+  // `position: relative` would override the absolute positioning above.
+  width: max-content;
+  background: transparent;
+}
+
+.preview-page__status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  padding: var(--space-md);
+  color: var(--color-text-muted);
+  font-style: italic;
+
+  &--error {
+    color: var(--color-error);
+    font-style: normal;
+  }
+
+  &--empty {
+    justify-content: center;
+    height: 100%;
+    font-style: normal;
+  }
+}
+
+.preview-page__image {
+  display: block;
+  max-width: 100%;
+  margin: var(--space-md) auto;
+}
+
+.preview-page__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.preview-page__pages--hidden {
+  display: none;
+}
+
+// docx-preview's own wrapper/pages are generated markup outside this component's view, so they
+// can only be reached through ::ng-deep. Keep its paper-white pages, just drop the grey backdrop.
+.preview-page__pages ::ng-deep .docx-page-wrapper {
+  background: transparent;
+  padding: var(--space-md);
+}
+
+// Same breakpoint as the conversation grid: the list becomes a horizontal strip above the viewer.
+@media (max-width: 700px) {
+  .preview-page__body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+
+  .preview-page__list {
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+  }
+
+  .preview-page__item {
+    flex: none;
+    width: auto;
+    max-width: 14rem;
+  }
+}

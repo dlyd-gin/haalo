@@ -1,7 +1,16 @@
 <div class="app-shell" [attr.data-orientation]="layout.manualOverride()">
   <app-header />
-  <main class="conversation-grid">
-    <foreign-speaker />
-    <native-speaker />
-  </main>
+  <div class="app-stage" [class.app-stage--preview]="store.previewSource()">
+    <main class="conversation-grid" [attr.inert]="store.previewSource() ? '' : null">
+      <foreign-speaker />
+      <native-speaker />
+    </main>
+    <document-preview-page
+      class="app-stage__preview"
+      [source]="store.previewSource()"
+      [attr.inert]="store.previewSource() ? null : ''"
+      [attr.aria-hidden]="store.previewSource() ? null : 'true'"
+      (closed)="store.closePreview()"
+    />
+  </div>
 </div>

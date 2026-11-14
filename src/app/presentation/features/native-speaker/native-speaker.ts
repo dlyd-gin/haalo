@@ -10,6 +10,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { ConversationStore } from '../../../application/conversation-store';
+import {
+  attachmentKind,
+  unsupportedAttachmentMessage,
+} from '../../../infrastructure/document/document.port';
 import { MessageBubble } from '../../shared/message-bubble/message-bubble';
 import { Icon } from '../../shared/icon/icon';
 import { MicButton } from '../../shared/mic-button/mic-button';
@@ -25,9 +29,24 @@ export class NativeSpeaker {
   #destroyRef = inject(DestroyRef);
 
   protected readonly draftText = signal('');
-  protected readonly canSend = computed(
-    () => this.draftText().trim().length > 0 && !this.store.isSending(),
-  );
+
+  // A document to send with the next message, whose text then becomes the instruction for it.
+  protected readonly pendingAttachment = signal<File | null>(null);
+  protected readonly attachmentError = computed(() => {
+    const file = this.pendingAttachment();
+    return file && attachmentKind(file) === null ? unsupportedAttachmentMessage(file) : null;
+  });
+
+  // An attachment message isn't translated or spoken, so it doesn't wait on a pending reply's TTS.
+  protected readonly canSend = computed(() => {
+    if (this.draftText().trim().length === 0) {
+      return false;
+    }
+    if (this.pendingAttachment()) {
+      return this.attachmentError() === null;
+    }
+    return !this.store.isSending();
+  });
 
   protected readonly isExpanded = signal(false);
 
@@ -38,6 +57,7 @@ export class NativeSpeaker {
   protected readonly composerRoot = viewChild<ElementRef<HTMLElement>>('composerRoot');
   protected readonly textareaEl = viewChild<ElementRef<HTMLTextAreaElement>>('textareaEl');
   protected readonly fabButton = viewChild<ElementRef<HTMLButtonElement>>('fabButton');
+  protected readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   constructor() {
     // Zoneless-safe global listeners, mirroring LayoutPreferencesStore's
@@ -102,8 +122,35 @@ export class NativeSpeaker {
     if (!this.canSend()) {
       return;
     }
-    this.store.sendReply(this.draftText());
+    const file = this.pendingAttachment();
+    const kind = file && attachmentKind(file);
+    if (file && kind) {
+      this.store.sendAttachment(this.draftText(), file, kind);
+      this.pendingAttachment.set(null);
+    } else {
+      this.store.sendReply(this.draftText());
+    }
     this.draftText.set('');
+  }
+
+  onAttachClick(): void {
+    this.fileInput()?.nativeElement.click();
+  }
+
+  onFileSelected(input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    // Cleared so picking the same file again still fires `change`.
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    this.pendingAttachment.set(file);
+    this.textareaEl()?.nativeElement.focus();
+  }
+
+  removeAttachment(): void {
+    this.pendingAttachment.set(null);
+    this.textareaEl()?.nativeElement.focus();
   }
 
   onKeydown(event: KeyboardEvent): void {

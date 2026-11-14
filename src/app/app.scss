@@ -18,8 +18,65 @@
   @include glass.panel-ambient;
 }
 
-.conversation-grid {
+// The conversation and the document preview page share one grid cell; opening the preview slides
+// the conversation out to the left while the preview slides in from the right (and back on close).
+.app-stage {
   flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template: 1fr / 1fr;
+  overflow: hidden;
+  // The edge flush against the header is square, the far edge rounded. Set here (not per pane) so
+  // the conversation grid and the preview page inherit the same shape in every orientation.
+  // Default/auto layout matches horizontal: header above, so the top edge is square.
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: var(--radius-lg);
+  border-bottom-right-radius: var(--radius-lg);
+
+  > .conversation-grid,
+  > .app-stage__preview {
+    grid-area: 1 / 1;
+    min-width: 0;
+    border-radius: inherit;
+    transition:
+      transform var(--duration-slow) var(--easing-emphasized),
+      visibility 0s linear var(--duration-slow);
+  }
+
+  > .app-stage__preview {
+    transform: translateX(100%);
+    // Hidden once fully out, so the off-stage pane can't be scrolled or found by find-in-page.
+    visibility: hidden;
+  }
+
+  &--preview {
+    > .conversation-grid {
+      transform: translateX(-100%);
+      visibility: hidden;
+    }
+
+    > .app-stage__preview {
+      transform: none;
+      visibility: visible;
+    }
+  }
+
+  // Delay visibility only on the pane leaving; the arriving one is visible immediately.
+  &--preview > .app-stage__preview,
+  &:not(.app-stage--preview) > .conversation-grid {
+    transition-delay: 0s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-stage > .conversation-grid,
+  .app-stage > .app-stage__preview {
+    transition: none;
+  }
+}
+
+.conversation-grid {
   min-height: 0;
   display: grid;
   // Hairline seam width, not a spacing-scale value — the gap is filled by
@@ -29,22 +86,20 @@
   overflow: hidden;
 
   // Default/auto layout — plain CSS, correct on first paint with zero JS. Matches
-  // horizontal orientation, so its top edge (flush against the header's now-square
-  // bottom edge) is square too; bottom corners stay rounded.
+  // horizontal orientation; corner radii come from .app-stage.
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-bottom-left-radius: var(--radius-lg);
-  border-bottom-right-radius: var(--radius-lg);
 }
 
 @media (max-width: 700px) {
   .conversation-grid {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
-    // Below this breakpoint, default/auto layout flips to vertical (grid moves above
-    // the header, native-speaker's row at the bottom) — flip which edge is square to match.
+  }
+
+  // Below this breakpoint, default/auto layout flips to vertical (stage moves above
+  // the header, native-speaker's row at the bottom) — flip which edge is square to match.
+  .app-stage {
     border-top-left-radius: var(--radius-lg);
     border-top-right-radius: var(--radius-lg);
     border-bottom-left-radius: 0;
@@ -58,7 +113,7 @@
       order: 1;
     }
 
-    .conversation-grid {
+    .app-stage {
       order: 0;
     }
   }
@@ -71,16 +126,20 @@
     order: 0;
   }
 
-  .conversation-grid {
+  .app-stage {
     order: 1;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr;
     // Both top corners sit flush against the header's now-square bottom edge — square
-    // them off too. Both bottom corners stay rounded (bottom-right set explicitly here,
-    // though it matches the base rule below already).
+    // them off too. Both bottom corners stay rounded (all four set, so the ≤700px rule's
+    // square bottom corners can't leak through).
     border-top-left-radius: 0;
     border-top-right-radius: 0;
+    border-bottom-left-radius: var(--radius-lg);
     border-bottom-right-radius: var(--radius-lg);
+  }
+
+  .conversation-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
   }
 }
 
@@ -89,16 +148,18 @@
     order: 1;
   }
 
-  .conversation-grid {
+  .app-stage {
     order: 0;
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr 1fr;
-    // native-speaker is always the bottom row here (see foreign-speaker.scss) — both its corners
-    // sit flush against the header's now-square top edge, so square them off too.
-    // foreign-speaker's row (top) isn't adjacent to anything, so its corners stay rounded.
+    // The stage's bottom edge sits flush against the header's now-square top edge, so square
+    // it off too. Its top edge isn't adjacent to anything, so those corners stay rounded.
     border-top-left-radius: var(--radius-lg);
     border-top-right-radius: var(--radius-lg);
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
+  }
+
+  .conversation-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
   }
 }

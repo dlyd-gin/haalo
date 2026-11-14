@@ -1,22 +1,46 @@
 # Haalo App
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.20.
+A travel conversation app: type or speak on your side, and the other person reads or hears the reply in
+their language, with on-device open-weight models. See [docs/introduction.md](docs/introduction.md) for the
+idea and [docs/architecture.md](docs/architecture.md) for how it fits together.
+
+The frontend is an Angular 21 app (generated with [Angular CLI](https://github.com/angular/angular-cli)
+version 21.2.20) running on Node.js 22.22.0, served by an Express/SSR server (`src/server.ts`) that
+proxies to Python services in `services/`.
+
+## Backend services
+
+Each service has its own README with setup (models are downloaded manually) and API docs. They are
+Apple Silicon (MLX) only and need [uv](https://docs.astral.sh/uv/).
+
+| Service | Port | Purpose |
+| --- | --- | --- |
+| [tts-service](services/tts-service/README.md) | 8000 | text to speech |
+| [translator-service](services/translator-service/README.md) | 8001 | translation, document grounding and suggestions |
+| [stt-service](services/stt-service/README.md) | 8002 | speech to text |
+| [document-service](services/document-service/README.md) | 8003 | PDF / Word / image document processing |
+| [ocr-service](services/ocr-service/README.md) | 8004 | image text recognition with bounding boxes |
 
 ## Development server
 
-To start a local development server, run:
+Use nvm to set node version 22.22.0 (`nvm install && nvm use` reads `.nvmrc`)
+
+To start Angular and every Python service together, run:
 
 ```bash
-ng serve
+npm run start-dev
 ```
+
+(`start-dev.sh`; it runs `ng serve` plus all five services with `uv run uvicorn ...`, and stops them all
+on Ctrl+C.) To run just the frontend, use `ng serve`.
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
 ## Running with SSR (Node server)
 
 To run the app through its actual Express/SSR server (`src/server.ts`) instead of Angular's
-dev-time SSR renderer — e.g. to exercise the real `/api/tts`, `/api/stt`, `/api/translate` proxy
-routes to the backend Python services — run these two commands in separate terminals:
+dev-time SSR renderer — e.g. to exercise the real `/api/tts`, `/api/stt`, `/api/translate`, `/api/pdf/analyze`
+and `/api/document/*` proxy routes to the backend Python services — run these two commands in separate terminals:
 
 ```bash
 # terminal 1 — rebuilds dist/ on source changes
@@ -62,15 +86,7 @@ To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use th
 ng test
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Each Python service has its own `uv run pytest` where tests exist (e.g. `services/ocr-service`).
 
 ## Additional Resources
 

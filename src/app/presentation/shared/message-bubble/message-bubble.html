@@ -18,57 +18,118 @@
         <svg-icon [name]="isPlaying() ? 'sound-wave-progress' : 'sound-wave-play'" size="sm" />
       </button>
     }
-    @switch (turn().status) {
-      @case ('recording') {
-        <p class="bubble__status">Listening…</p>
-      }
-      @case ('processing') {
-        @if (align() === 'end' && turn().sourceText) {
-          <p class="bubble__primary">{{ turn().sourceText }}</p>
-        } @else if (turn().sourceText) {
-          <div class="bubble__progress" role="status" aria-label="Translating">
-            <span class="bubble__progress-dot"></span>
-            <span class="bubble__progress-dot"></span>
-            <span class="bubble__progress-dot"></span>
+    @if (turn().attachment; as attachment) {
+      <div class="bubble__icons">
+        <button
+          type="button"
+          class="bubble__icon-btn bubble__icon-btn--muted"
+          (click)="onAttachmentClick()"
+          [title]="attachment.fileName"
+          [attr.aria-label]="'Preview attachment ' + attachment.fileName"
+        >
+          <svg-icon name="attach" size="sm" />
+        </button>
+        @if (turn().status === 'error') {
+          <div class="bubble__error-anchor" #errorAnchor>
+            @if (isErrorTipOpen()) {
+              <p class="bubble__error-tip" role="tooltip" [id]="'error-tip-' + turn().id">
+                {{ turn().errorMessage || 'Something went wrong' }}
+              </p>
+            }
+            <button
+              type="button"
+              class="bubble__icon-btn bubble__icon-btn--error"
+              (click)="toggleErrorTip()"
+              [attr.aria-expanded]="isErrorTipOpen()"
+              [attr.aria-describedby]="isErrorTipOpen() ? 'error-tip-' + turn().id : null"
+              aria-label="Show error"
+            >
+              <svg-icon name="error" size="sm" />
+            </button>
           </div>
-          <p class="bubble__secondary">{{ turn().sourceText }}</p>
+        } @else if (turn().suggestion?.fileName) {
+          <button
+            type="button"
+            class="bubble__icon-btn"
+            (click)="onPreviewClick()"
+            [title]="turn().suggestion?.fileName ?? ''"
+            aria-label="Preview highlighted document"
+          >
+            <svg-icon name="preview" size="sm" />
+          </button>
+        }
+      </div>
+      <p class="bubble__primary">{{ turn().sourceText }}</p>
+      @if (turn().status !== 'error') {
+        @if (turn().suggestion?.summary; as summary) {
+          <p class="bubble__summary">{{ summary }}</p>
+        } @else if (turn().suggestion?.summaryError; as summaryError) {
+          <p class="bubble__status">Summary unavailable: {{ summaryError }}</p>
         } @else {
-          <div class="bubble__progress" role="status" aria-label="Translating">
+          <div
+            class="bubble__progress bubble__progress--below"
+            role="status"
+            [attr.aria-label]="turn().suggestion?.fileName ? 'Summarizing' : 'Reading document'"
+          >
             <span class="bubble__progress-dot"></span>
             <span class="bubble__progress-dot"></span>
             <span class="bubble__progress-dot"></span>
           </div>
         }
       }
-      @case ('streaming') {
-        @if (align() === 'end') {
-          <p class="bubble__primary">{{ primaryText() }}</p>
-        } @else if (!primaryText()) {
-          <div class="bubble__progress" role="status" aria-label="Translating">
-            <span class="bubble__progress-dot"></span>
-            <span class="bubble__progress-dot"></span>
-            <span class="bubble__progress-dot"></span>
-          </div>
-          @if (secondaryText()) {
-            <p class="bubble__secondary">{{ secondaryText() }}</p>
-          }
-        } @else {
-          <p class="bubble__primary">{{ primaryText() }}</p>
-          @if (secondaryText()) {
-            <p class="bubble__secondary">{{ secondaryText() }}</p>
+    } @else {
+      @switch (turn().status) {
+        @case ('recording') {
+          <p class="bubble__status">Listening…</p>
+        }
+        @case ('processing') {
+          @if (align() === 'end' && turn().sourceText) {
+            <p class="bubble__primary">{{ turn().sourceText }}</p>
+          } @else if (turn().sourceText) {
+            <div class="bubble__progress" role="status" aria-label="Translating">
+              <span class="bubble__progress-dot"></span>
+              <span class="bubble__progress-dot"></span>
+              <span class="bubble__progress-dot"></span>
+            </div>
+            <p class="bubble__secondary">{{ turn().sourceText }}</p>
+          } @else {
+            <div class="bubble__progress" role="status" aria-label="Translating">
+              <span class="bubble__progress-dot"></span>
+              <span class="bubble__progress-dot"></span>
+              <span class="bubble__progress-dot"></span>
+            </div>
           }
         }
-      }
-      @case ('error') {
-        <p class="bubble__status bubble__status--error">
-          <svg-icon name="error" size="sm" aria-hidden="true" />
-          {{ turn().errorMessage || 'Something went wrong' }}
-        </p>
-      }
-      @default {
-        <p class="bubble__primary">{{ primaryText() }}</p>
-        @if (secondaryText()) {
-          <p class="bubble__secondary">{{ secondaryText() }}</p>
+        @case ('streaming') {
+          @if (align() === 'end') {
+            <p class="bubble__primary">{{ primaryText() }}</p>
+          } @else if (!primaryText()) {
+            <div class="bubble__progress" role="status" aria-label="Translating">
+              <span class="bubble__progress-dot"></span>
+              <span class="bubble__progress-dot"></span>
+              <span class="bubble__progress-dot"></span>
+            </div>
+            @if (secondaryText()) {
+              <p class="bubble__secondary">{{ secondaryText() }}</p>
+            }
+          } @else {
+            <p class="bubble__primary">{{ primaryText() }}</p>
+            @if (secondaryText()) {
+              <p class="bubble__secondary">{{ secondaryText() }}</p>
+            }
+          }
+        }
+        @case ('error') {
+          <p class="bubble__status bubble__status--error">
+            <svg-icon name="error" size="sm" aria-hidden="true" />
+            {{ turn().errorMessage || 'Something went wrong' }}
+          </p>
+        }
+        @default {
+          <p class="bubble__primary">{{ primaryText() }}</p>
+          @if (secondaryText()) {
+            <p class="bubble__secondary">{{ secondaryText() }}</p>
+          }
         }
       }
     }

@@ -54,7 +54,7 @@ class SttEngine:
             raise RuntimeError("mlx-whisper produced no transcription for the given audio")
 
         # Segments are already fully decoded by the time transcribe() returns, but yielding
-        # them one at a time keeps the same delta/done wire shape main.py expects.
+        # them one at a time keeps the same delta/done wire shape feature/transcribe expects.
         for segment in segments:
             yield {"text": segment["text"], "is_final": False, "language": detected_language}
         yield {"text": "", "is_final": True, "language": detected_language}

@@ -19,14 +19,17 @@
   <div class="panel-content">
     <div class="foreign-speaker__feed" role="log">
       @for (turn of store.turns(); track turn.id) {
-        <message-bubble
-          [turn]="turn"
-          [align]="turn.originSplit === 'foreign-speaker' ? 'end' : 'start'"
-          [showPlayButton]="turn.originSplit === 'native-speaker'"
-          [isPlaying]="store.playingTurnId() === turn.id"
-          (play)="onPlay($event)"
-          (pause)="onPause($event)"
-        />
+        <!-- Attachment turns are the native speaker's own document lookups: never translated. -->
+        @if (!turn.attachment) {
+          <message-bubble
+            [turn]="turn"
+            [align]="turn.originSplit === 'foreign-speaker' ? 'end' : 'start'"
+            [showPlayButton]="turn.originSplit === 'native-speaker'"
+            [isPlaying]="store.playingTurnId() === turn.id"
+            (play)="onPlay($event)"
+            (pause)="onPause($event)"
+          />
+        }
       }
     </div>
   </div>

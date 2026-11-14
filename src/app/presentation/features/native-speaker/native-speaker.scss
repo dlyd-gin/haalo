@@ -39,6 +39,7 @@
 
 .native-speaker__composer {
   display: flex;
+  flex-wrap: wrap; // the attachment chip takes a row of its own above the input row
   align-items: center;
   gap: var(--space-sm);
   overflow: hidden; // required so the inner content never spills mid-transition
@@ -60,6 +61,10 @@
     max-height: 9rem;
     padding: var(--space-xs);
     border-radius: var(--radius-md);
+  }
+
+  &--with-attachment {
+    max-height: 12rem;
   }
 
   // glass-focus-ring's mixin targets &:focus, but the focusable element here is
@@ -86,10 +91,12 @@
   }
 }
 
-.native-speaker__fab {
+// Shared base for the round icon buttons; each rule below only sets what differs.
+.native-speaker__fab,
+.native-speaker__send,
+.native-speaker__attach,
+.native-speaker__attachment-remove {
   flex: none;
-  width: 44px; // matches mic-button's size on the foreign speaker side
-  height: 44px;
   padding: 0;
   border: none;
   border-radius: var(--radius-pill);
@@ -99,12 +106,18 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.native-speaker__fab {
+  width: 44px; // matches mic-button's size on the foreign speaker side
+  height: 44px;
   animation: native-speaker-fade-in 0.15s ease both;
   @include glass.glass-press(0.94);
 }
 
 .native-speaker__input {
   flex: 1;
+  min-width: 0; // shrink rather than wrap below the chip row on narrow screens
   min-height: 3rem;
   max-height: 8rem;
   padding: var(--space-sm);
@@ -121,24 +134,20 @@
   }
 }
 
-.native-speaker__send {
-  flex: none;
+// Send and attach share size, entrance and press feedback.
+.native-speaker__send,
+.native-speaker__attach {
   width: 32px;
   height: 32px;
-  padding: 0;
+  animation: native-speaker-fade-in 0.18s ease 0.05s both;
+  @include glass.glass-press;
+}
+
+.native-speaker__send {
   // Matches the textarea's own left padding, so the send icon sits as far
   // from the composer's right edge as the input text sits from its left.
   margin-right: var(--space-sm);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: transparent;
   color: var(--color-accent);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  animation: native-speaker-fade-in 0.18s ease 0.05s both;
-  @include glass.glass-press;
 
   &:hover:not(:disabled) {
     @include glass.glass-panel('sm', var(--radius-pill));
@@ -150,9 +159,61 @@
   }
 }
 
+// Selected document, above the input row. The flex-basis forces the wrap.
+.native-speaker__attachment {
+  flex: 1 0 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-muted);
+  color: var(--color-text-vibrant);
+  font-size: var(--font-size-sm);
+  animation: native-speaker-fade-in 0.18s ease both;
+
+  &--error {
+    background: transparent;
+    color: var(--color-error);
+  }
+}
+
+.native-speaker__attachment-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.native-speaker__attachment-error {
+  flex: none;
+}
+
+.native-speaker__attachment-remove {
+  width: 24px;
+  height: 24px;
+  color: inherit;
+  @include glass.glass-press;
+}
+
+.native-speaker__file-input {
+  display: none;
+}
+
+// Sized like .native-speaker__send; sits left of the mic button.
+.native-speaker__attach {
+  &:hover {
+    @include glass.glass-panel('sm', var(--radius-pill));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .native-speaker__fab,
   .native-speaker__input,
+  .native-speaker__attachment,
+  .native-speaker__attach,
   .native-speaker__send {
     animation: none;
   }

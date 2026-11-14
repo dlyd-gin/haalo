@@ -8,6 +8,8 @@
 }
 
 .bubble {
+  // Shrink-wraps to the text, capped so long messages still wrap.
+  width: fit-content;
   max-width: 80%;
 
   &--start {
@@ -81,13 +83,16 @@
   }
 }
 
+// text-wrap: pretty evens out wrapped lines, so a capped bubble leaves less dead space on the right.
 .bubble__primary {
   margin: 0;
   color: var(--color-text);
+  text-wrap: pretty;
 }
 
 .bubble__secondary {
   margin: var(--space-xs) 0 0;
+  text-wrap: pretty;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
@@ -123,5 +128,89 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
+  }
+}
+
+// Attachment turns: icon-only affordances floated top-right, like .bubble__play, so the
+// instruction text wraps around them on the first line.
+.bubble__icons {
+  float: right;
+  display: inline-flex;
+  margin: 0 0 var(--space-xs) var(--space-xs);
+}
+
+.bubble__summary {
+  margin: var(--space-sm) 0 0;
+  text-wrap: pretty;
+  // Matches the eye icon, tying the summary to the highlighted document it came from.
+  color: var(--color-accent);
+}
+
+.bubble__progress--below {
+  margin-top: var(--space-sm);
+  min-height: 1.5em;
+}
+
+.bubble__icon-btn {
+  flex: none;
+  padding: var(--space-xs);
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity var(--duration-fast) var(--easing-standard);
+
+  &--muted {
+    color: var(--color-text-muted);
+  }
+
+  &--error {
+    color: var(--color-error);
+  }
+
+  &:active {
+    opacity: 0.7;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+// ! icon beside the attachment icon (top-right); its tooltip opens below it — the icon sits on the
+// bubble's first line, so opening upward could clip under the feed's top edge — right-aligned so it
+// never overflows the bubble's side.
+.bubble__error-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+.bubble__error-tip {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-xs));
+  z-index: 1;
+  width: max-content;
+  max-width: 16rem;
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--glass-shadow-sm);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  animation: bubble-tip-in var(--duration-fast) var(--easing-standard);
+}
+
+@keyframes bubble-tip-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
   }
 }
